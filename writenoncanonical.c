@@ -94,12 +94,12 @@ int main(int argc, char** argv)
     char bufread[255];
 
 
-    int i = 0;
+    int j = 0;
     while (STOP==FALSE) {       /* loop for input */
       res = read(fd,&bufread[i],1);   /* returns after 5 chars have been input */
       //buf[i] = 0;                        /* so we can printf... */
-      if (buf[i]=='\0') STOP=TRUE;
-        i++;
+      if (buf[j]=='\0') STOP=TRUE;
+        j++;
     } 
     printf("%s\n", bufread);
 

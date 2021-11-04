@@ -77,7 +77,6 @@ int main(int argc, char** argv)
         i++;
     } 
     printf("%s\n", buf);
-    printf("%d\n", res);
 
   /* 
     O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 
