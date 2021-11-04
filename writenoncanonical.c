@@ -91,6 +91,17 @@ int main(int argc, char** argv)
     o indicado no gui鉶 
   */
     sleep(2);
+    char bufread[255];
+
+
+    int i = 0;
+    while (STOP==FALSE) {       /* loop for input */
+      res = read(fd,&bufread[i],1);   /* returns after 5 chars have been input */
+      //buf[i] = 0;                        /* so we can printf... */
+      if (buf[i]=='\0') STOP=TRUE;
+        i++;
+    } 
+    printf("%s\n", bufread);
 
 
    
