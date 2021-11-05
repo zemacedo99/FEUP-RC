@@ -5,17 +5,12 @@
 #include <termios.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 0
 #define TRUE 1
-#define FLAG 0x7e
-#define A 0x03
-#define SET 0x03
 
 volatile int STOP=FALSE;
 
@@ -25,10 +20,6 @@ int main(int argc, char** argv)
     int fd,c, res;
     struct termios oldtio,newtio;
     char buf[255];
-    unsigned char set[5];
-   
-    
-   
     int i, sum = 0, speed = 0;
     
     if ( (argc < 2) || 
@@ -38,16 +29,7 @@ int main(int argc, char** argv)
       exit(1);
     }
 
-    set[0] = FLAG;
-    set[1] = A;
-    set[2] = SET;
-    set[3] = set[1] ^ set[2];
-    set[4] = FLAG;
-    printf("%x set0\n", set[0]);
-    printf("%x set1\n", set[1]);
-    printf("%x set2\n", set[2]);
-    printf("%x set3\n", set[3]);
-    printf("%x set4\n", set[4]);
+
   /*
     Open serial port device for reading and writing and not as controlling tty
     because we don't want to get killed if linenoise sends CTRL-C.
@@ -89,62 +71,38 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
 
-  /* 
-    O ciclo FOR e as instru珲es seguintes devem ser alterados de modo a respeitar 
-    o indicado no gui鉶 
-  */
 
-    //gets(buf);
+
+    gets(buf);
   
-    //printf("%s\n",buf);
-    //res = write(fd,buf,strlen(buf)+1);   //manda o texto 
+    printf("%s\n",buf);
+
+   
+  
     
-    res = write(fd,set,5);  //manda set
+    
+    res = write(fd,buf,strlen(buf)+1);   
   
     printf("%d bytes written\n", res);
  
 
-
+  /* 
+    O ciclo FOR e as instru珲es seguintes devem ser alterados de modo a respeitar 
+    o indicado no gui鉶 
+  */
     sleep(2);
     char bufread[255];
-    unsigned char ua[5];
 
-    int status = 0;
-    i = 0;
-    while (status != 5){
-    res = read(fd,&ua[i],1);
-    printf("ua %x \n", ua[i]); 
-    i++;
-    switch (status){
-        case 0: 
-            if (ua[0]==0x7e)
-                status=1;
-        case 1:
-            if (ua[1] == 0x01)
-                status = 2;
-            else if (ua[1] != 0x7e)
-                status = 0;
-        case 2:
-            if (ua[2] == 0x07)
-                status = 3;
-            else if (ua[2] == 0x7e)
-                status = 1;
-            else 
-                status=0;
-        case 3:
-            if (ua[3] == ua[2] ^ ua[1])
-                status = 4;
-            else if (ua[3] == 0x7e)
-                status = 1;
-            else 
-                status=0;
-        case 4:
-            if (ua[4] == 0x7e)
-                status = 5;
-            else 
-                status=0;
-        }
-    }
+
+    int j = 0;
+    while (STOP==FALSE) {       /* loop for input */
+      res = read(fd,&bufread[i],1);   /* returns after 5 chars have been input */
+      //buf[i] = 0;                        /* so we can printf... */
+      if (buf[j]=='\0') STOP=TRUE;
+        j++;
+    } 
+    printf("%s\n", bufread);
+
 
    
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {

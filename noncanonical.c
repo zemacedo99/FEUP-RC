@@ -5,7 +5,6 @@
 #include <termios.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 
 #define BAUDRATE B38400
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
@@ -13,15 +12,12 @@
 #define TRUE 1
 
 volatile int STOP=FALSE;
-unsigned char set[5];
-unsigned char ua[5];
 
 int main(int argc, char** argv)
 {
     int fd,c, res;
-    int status = 0;
     struct termios oldtio,newtio;
-
+    char buf[255];
 
     if ( (argc < 2) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
@@ -74,52 +70,13 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
     int i = 0;
-  
-
-   
-
-    while (status != 5){
-        res = read(fd,&set[i],1);
-        printf("%x\n", set[i]); 
+    while (STOP==FALSE) {       /* loop for input */
+      res = read(fd,&buf[i],1);   /* returns after 5 chars have been input */
+      //buf[i] = 0;                        /* so we can printf... */
+      if (buf[i]=='\0') STOP=TRUE;
         i++;
-        switch (status){
-            case 0: 
-                if (set[0]==0x7e)
-                    status=1;
-            case 1:
-                if (set[1] == 0x03)
-                    status = 2;
-                else if (set[1] != 0x7e)
-                    status = 0;
-            case 2:
-                if (set[2] == 0x03)
-                    status = 3;
-                else if (set[2] == 0x7e)
-                    status = 1;
-                else 
-                    status=0;
-            case 3:
-                if (set[3] == set[2] ^ set[1])
-                    status = 4;
-                else if (set[3] == 0x7e)
-                    status = 1;
-                else 
-                    status=0;
-            case 4:
-                if (set[4] == 0x7e)
-                    status = 5;
-                else 
-                    status=0;
-        }
-}
-
-        ua[0]=0x7e;
-        ua[1]= 0x01;
-        ua[2] = 0x07;
-        ua[3] = ua[1] ^ ua[2];
-        ua[4] = 0x7e;
-            
-
+    } 
+    printf("%s\n", buf);
 
   /* 
     O ciclo WHILE deve ser alterado de modo a respeitar o indicado no guião 
@@ -129,12 +86,9 @@ int main(int argc, char** argv)
         Devolução da palavra
     */
 
-    res = write(fd,ua,5); 
-    printf("%d", res);  
+    res = write(fd,buf,255);   
     for(int i = 0; i<res; i++){
-       write(fd,ua[i],1);  
-       printf("%x\n", ua[i]); 
-     
+       write(fd,buf[i],1);   
     }
  
 
