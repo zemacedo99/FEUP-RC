@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "alarme.h"
+
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
@@ -16,6 +18,8 @@
 #define FLAG 0x7e
 #define A 0x03
 #define SET 0x03
+
+extern int flag, conta;
 
 volatile int STOP=FALSE;
 
@@ -38,18 +42,16 @@ int main(int argc, char** argv)
       exit(1);
     }
 
+    (void)signal(SIGALRM,&sig_handler);
+
+
     set[0] = FLAG;
     set[1] = A;
     set[2] = SET;
     set[3] = set[1] ^ set[2];
     set[4] = FLAG;
-    printf("%x set0\n", set[0]);
-    printf("%x set1\n", set[1]);
-    printf("%x set2\n", set[2]);
-    printf("%x set3\n", set[3]);
-    printf("%x set4\n", set[4]);
-  /*
-    Open serial port device for reading and writing and not as controlling tty
+
+   /* Open serial port device for reading and writing and not as controlling tty
     because we don't want to get killed if linenoise sends CTRL-C.
   */
 
@@ -94,57 +96,66 @@ int main(int argc, char** argv)
     o indicado no gui鉶 
   */
 
-    //gets(buf);
-  
-    //printf("%s\n",buf);
-    //res = write(fd,buf,strlen(buf)+1);   //manda o texto 
-    
-    res = write(fd,set,5);  //manda set
-  
-    printf("%d bytes written\n", res);
- 
-
-
-    sleep(2);
-    char bufread[255];
-    unsigned char ua[5];
-
     int status = 0;
-    i = 0;
-    while (status != 5){
-    res = read(fd,&ua[i],1);
-    printf("ua %x \n", ua[i]); 
-    i++;
-    switch (status){
-        case 0: 
-            if (ua[0]==0x7e)
-                status=1;
-        case 1:
-            if (ua[1] == 0x01)
-                status = 2;
-            else if (ua[1] != 0x7e)
-                status = 0;
-        case 2:
-            if (ua[2] == 0x07)
-                status = 3;
-            else if (ua[2] == 0x7e)
-                status = 1;
-            else 
-                status=0;
-        case 3:
-            if (ua[3] == ua[2] ^ ua[1])
-                status = 4;
-            else if (ua[3] == 0x7e)
-                status = 1;
-            else 
-                status=0;
-        case 4:
-            if (ua[4] == 0x7e)
-                status = 5;
-            else 
-                status=0;
+
+
+
+
+    while(conta < 4){
+      //write 
+      //alarme
+      //le e checa maquina de estados 
+      
+
+      res = write(fd,set,5);  //manda set
+      flag = 0;
+      alarm(2);
+      printf("%d bytes written\n", res);
+  
+
+
+      sleep(2);
+      char bufread[255];
+      unsigned char ua[5];
+
+      i = 0;
+      while (status != 5){
+        if (flag) break;
+        res = read(fd,&ua[i],1);
+        printf("ua %x \n", ua[i]); 
+        i++;
+        switch (status){
+            case 0: 
+                if (ua[0]==0x7e)
+                    status=1;
+            case 1:
+                if (ua[1] == 0x01)
+                    status = 2;
+                else if (ua[1] != 0x7e)
+                    status = 0;
+            case 2:
+                if (ua[2] == 0x07)
+                    status = 3;
+                else if (ua[2] == 0x7e)
+                    status = 1;
+                else 
+                    status=0;
+            case 3:
+                if (ua[3] == ua[2] ^ ua[1])
+                    status = 4;
+                else if (ua[3] == 0x7e)
+                    status = 1;
+                else 
+                    status=0;
+            case 4:
+                if (ua[4] == 0x7e)
+                    status = 5;
+                else 
+                    status=0;
+            }
         }
-    }
+
+      }
 
    
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
@@ -152,7 +163,10 @@ int main(int argc, char** argv)
       exit(-1);
     }
     
-    
+    if (status !=5 ){
+      perror("TIMEOUT");
+      exit(-1);
+    }
     
 
 

@@ -115,7 +115,7 @@ int main(int argc, char** argv)
 
         ua[0]=0x7e;
         ua[1]= 0x01;
-        ua[2] = 0x07;
+        ua[2] = 0x01;//0x07;
         ua[3] = ua[1] ^ ua[2];
         ua[4] = 0x7e;
             
