@@ -97,61 +97,90 @@ int main(int argc, char** argv)
   */
 
     int status = 0;
+  
 
 
 
 
-    while(conta < 4){
+    while(conta < 4 && status!=5){
       //write 
       //alarme
       //le e checa maquina de estados 
+
+      printf("vou fazer write\n");
       
 
       res = write(fd,set,5);  //manda set
       flag = 0;
-      alarm(2);
+      alarm(3);
       printf("%d bytes written\n", res);
   
 
 
-      sleep(2);
+      sleep(1);
       char bufread[255];
       unsigned char ua[5];
 
       i = 0;
       while (status != 5){
-        if (flag) break;
+        if (flag) {
+          printf("aqui");
+          break;
+        }
         res = read(fd,&ua[i],1);
         printf("ua %x \n", ua[i]); 
         i++;
+        if(i==5){
+          i=0;
+          break;
+        }
         switch (status){
             case 0: 
-                if (ua[0]==0x7e)
+                if (ua[0]==0x7e){
                     status=1;
+                    printf("estado 1\n");
+        }
+            break;
             case 1:
-                if (ua[1] == 0x01)
+                if (ua[1] == 0x01){
                     status = 2;
+                    printf("estado 2\n");
+
+                }
                 else if (ua[1] != 0x7e)
                     status = 0;
+                break;
+
             case 2:
-                if (ua[2] == 0x07)
+                if (ua[2] == 0x07){
                     status = 3;
+                    printf("estado 3\n");
+                }
                 else if (ua[2] == 0x7e)
                     status = 1;
                 else 
                     status=0;
+                break;
+
             case 3:
-                if (ua[3] == ua[2] ^ ua[1])
+                if (ua[3] == ua[2] ^ ua[1]){
                     status = 4;
+                    printf("estadp 4\n");
+
+                }
                 else if (ua[3] == 0x7e)
                     status = 1;
                 else 
                     status=0;
+                break;
             case 4:
-                if (ua[4] == 0x7e)
-                    status = 5;
+                if (ua[4] == 0x7e){
+                  printf("status 5\n");
+                  status = 5;
+                }
                 else 
                     status=0;
+                break;
             }
         }
 

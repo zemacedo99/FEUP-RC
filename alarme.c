@@ -10,9 +10,10 @@
 
 
 void sig_handler(int signum){
-   printf("alarme # %d\n", i);
+   printf("ALARME # %d\n", i);
    i++;
    flag=1;
+   printf("flag %d\n", flag);
 	conta++;
 
 }
