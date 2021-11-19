@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "alarme.h"
- int flag=0, conta=0, i = 1;
+ int flag=0, conta=0, i = 0;
 
 
 
