@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "alarme.h"
- int flag=0, conta=0, i = 0;
+ int flag=0, count=0, i = 0;
 
 
 
@@ -14,7 +14,7 @@ void sig_handler(int signum){
    i++;
    flag=1;
    printf("flag %d\n", flag);
-	conta++;
+	count++;
 
 }
 
