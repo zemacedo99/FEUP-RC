@@ -14,18 +14,21 @@ int writeSFrame(int fd, unsigned char C){
     int res;
 
     set[0] = FLAG;
-    set[1] = A;
+    set[1] = 0x03;
     set[2] = C;
-    set[3] = set[1] ^ set[2];
+    set[3] = FLAG ^ A;
     set[4] = FLAG;
 
-    if (res = write(fd,set,5)<0)
+    res = write(fd,set,5);
+
+    if (res<0)
         perror("Error writing\n");  //manda set
+
+    printf("%d bytes written\n", res);
     flag = 0;
     sleep(1);
-    alarm(TIMEOUT);
-    printf("%d bytes written\n", res);
-    
+    alarm(TIMEOUT);    
+
     return 0;
   
 }
@@ -41,7 +44,8 @@ int writeAnswerFrame(int fd, unsigned char C){
     set[4] = FLAG;
 
     if (res = write(fd,set,5)<0)
-        perror("Error writing\n");  //manda set
+        perror("Error writing\n");  
+    sleep(1);
     return 0;
 }
 
@@ -50,7 +54,7 @@ int recieveSFrame(int fd, unsigned char C){
 
       unsigned char ua[5];
       int status = 0;
-      int res=0;
+      int res;
 
       int i = 0;
       while (status != 5){
@@ -59,18 +63,20 @@ int recieveSFrame(int fd, unsigned char C){
           printf("aqui");
           break;
         }
-        if (res = read(fd,&ua[i],1)==0){
+        res = read(fd,&ua[i],1);
+        if (res==0){
             continue;
         }
-        printf("ua %x \n", ua[i]); 
         i++;
+
+        printf("ua %d %x \n",res, ua[i]); 
       
         switch (status){
             case 0: 
                 if (ua[0]==FLAG){
                     status=1;
                     printf("estado 1\n");
-        }
+            }
             break;
             case 1:
                 if (ua[1] == A){
@@ -78,9 +84,12 @@ int recieveSFrame(int fd, unsigned char C){
                     printf("estado 2\n");
 
                 }
-                else if (ua[1] !=FLAG)
+                else if (ua[1] !=FLAG){
                     status = 0;
-                break;
+                    printf("help nao sei ler %x\n", ua[1]);
+
+                }
+            break;
 
             case 2:
                 if (ua[2] == C){
@@ -91,7 +100,7 @@ int recieveSFrame(int fd, unsigned char C){
                     status = 1;
                 else 
                     status=0;
-                break;
+            break;
 
             case 3:
                 if (ua[3] == C ^ A){
@@ -103,7 +112,7 @@ int recieveSFrame(int fd, unsigned char C){
                     status = 1;
                 else 
                     status=0;
-                break;
+            break;
             case 4:
                 if (ua[4] == FLAG){
                   printf("status 5\n");
@@ -111,7 +120,7 @@ int recieveSFrame(int fd, unsigned char C){
                 }
                 else 
                     status=0;
-                break;
+            break;
             }
         }
         if (status != 5){
@@ -150,7 +159,8 @@ int llopen(char *port, int flag){
     else if (flag == RECEIVER){
         fd = openPort(port);
         recieveSFrame(fd, C_SET);
-        writeAnswerFrame(fd, C_UA);
+        printf("recebi a frame \n");
+        writeAnswerFrame(fd, 0x01);
     }
 
     return fd;
