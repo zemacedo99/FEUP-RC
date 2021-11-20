@@ -4,6 +4,8 @@
 #include<stdio.h>
 #include<unistd.h>
 #include<signal.h>
+
+#include "macros.h"
  
 void sig_handler(int signum);
 

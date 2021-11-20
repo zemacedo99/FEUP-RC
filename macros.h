@@ -7,10 +7,13 @@
 #define FALSE 0
 #define TRUE 1
 #define FLAG 0x7e
-#define A 0x03
+#define A_E 0x03
+#define A_R 0x01
 #define C_SET 0x03
 #define TIMEOUT 3
 #define C_UA 0x07
+#define C_DISC 0x0B
+
 
 
 

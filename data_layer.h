@@ -12,15 +12,16 @@
 #include <signal.h>
 #include <strings.h>
 
-#include "macros.h"
 #include "alarme.h"
 
-int write_sframe(int fd, unsigned char C);
+int writeFrame(int fd, unsigned char A, unsigned char C);
 
-int llopen(char *port, int flag);
-int openwriter(char * port);
-int recieve_sframe(int fd, unsigned char C);
-int llclose(int fd);
+int llopen(char *port, unsigned char flag);
+int openPort(char * port);
+int recieveSFrame(int fd, unsigned char A, unsigned char C);
+int llclose(int fd, unsigned char flag);
+void activateAlarm();
+void desactivateAlarm();
 
 
 #endif

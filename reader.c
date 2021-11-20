@@ -13,7 +13,7 @@ int main(int argc, char** argv)
     int fd,c, res;
 
 
-    if ( (argc < 2) || 
+    if ( (argc < 3) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
   	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
@@ -25,13 +25,14 @@ int main(int argc, char** argv)
     Open serial port device for reading and writing and not as controlling tty
     because we don't want to get killed if linenoise sends CTRL-C.
   */
-  
+   (void)signal(SIGALRM,&sig_handler);
+
     
     fd = llopen(argv[1], RECEIVER );
     if (fd <0) {perror(argv[1]); exit(-1); }
   
 
   
-    llclose(fd);
+    llclose(fd, RECEIVER);
     return 0;
 }

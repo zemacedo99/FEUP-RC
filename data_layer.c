@@ -3,118 +3,111 @@
 
 
 
-extern int flag, count;
+extern int alarmActive, count;
 struct termios oldtio,newtio;
 
 
 
 
-int writeSFrame(int fd, unsigned char C){
-    unsigned char set[5];
+int writeFrame(int fd, unsigned char A, unsigned char C){
+    unsigned char frame[5];
     int res;
 
-    set[0] = FLAG;
-    set[1] = 0x03;
-    set[2] = C;
-    set[3] = FLAG ^ A;
-    set[4] = FLAG;
+    frame[0] = FLAG;
+    frame[1] = A;
+    frame[2] = C;
+    frame[3] = A ^ C;
+    frame[4] = FLAG;
 
-    res = write(fd,set,5);
+    res = write(fd,frame,5);
+    for (int i= 0 ; i<5; i++){
+        printf("enviei %x\n", frame[i]);
+    }
 
-    if (res<0)
+    if (res<0){
         perror("Error writing\n");  //manda set
+        return -1;
 
-    printf("%d bytes written\n", res);
-    flag = 0;
+    }
+
+    printf("%d bytes written alarme active  %d\n", res, alarmActive);
     sleep(1);
-    alarm(TIMEOUT);    
+  
 
     return 0;
   
 }
 
-int writeAnswerFrame(int fd, unsigned char C){
-  unsigned char set[5];
-    int res;
 
-    set[0] = FLAG;
-    set[1] = A;
-    set[2] = C;
-    set[3] = set[1] ^ set[2];
-    set[4] = FLAG;
+int recieveSFrame(int fd,unsigned char A, unsigned char C){
 
-    if (res = write(fd,set,5)<0)
-        perror("Error writing\n");  
-    sleep(1);
-    return 0;
-}
-
-
-int recieveSFrame(int fd, unsigned char C){
-
-      unsigned char ua[5];
+      unsigned char frame[5];
       int status = 0;
       int res;
 
-      int i = 0;
+      int index = 0;
       while (status != 5){
 
-        if (flag) {
+        if (alarmActive) {
           printf("aqui");
           break;
         }
-        res = read(fd,&ua[i],1);
+
+    
+        if (index > 4) index = 0;
+
+        res = read(fd,&frame[index],1);
         if (res==0){
             continue;
         }
-        i++;
+        printf("recebi %d byte %x \n",res, frame[index]); 
 
-        printf("ua %d %x \n",res, ua[i]); 
-      
+        index++;
+
         switch (status){
             case 0: 
-                if (ua[0]==FLAG){
+                if (frame[0]==FLAG){
                     status=1;
                     printf("estado 1\n");
             }
             break;
             case 1:
-                if (ua[1] == A){
+                if (frame[1] == A){
                     status = 2;
                     printf("estado 2\n");
 
                 }
-                else if (ua[1] !=FLAG){
+                else if (frame[1] !=FLAG){
                     status = 0;
-                    printf("help nao sei ler %x\n", ua[1]);
+                    printf("help nao sei ler %x\n", frame[1]);
 
                 }
             break;
 
             case 2:
-                if (ua[2] == C){
+                if (frame[2] == C){
                     status = 3;
                     printf("estado 3\n");
                 }
-                else if (ua[2] == FLAG)
+                else if (frame[2] == FLAG)
                     status = 1;
                 else 
                     status=0;
             break;
 
             case 3:
-                if (ua[3] == C ^ A){
+                if (frame[3] == C ^ A){
                     status = 4;
                     printf("estadp 4\n");
 
                 }
-                else if (ua[3] == FLAG)
+                else if (frame[3] == FLAG)
                     status = 1;
                 else 
                     status=0;
             break;
             case 4:
-                if (ua[4] == FLAG){
+                if (frame[4] == FLAG){
                   printf("status 5\n");
                   status = 5;
                 }
@@ -132,7 +125,7 @@ int recieveSFrame(int fd, unsigned char C){
 }
 
 
-int llopen(char *port, int flag){
+int llopen(char *port, unsigned char flag){
     int fd, notrecieved;
 
     if (flag != TRANSMITTER && flag != RECEIVER){
@@ -143,13 +136,15 @@ int llopen(char *port, int flag){
     if (flag == TRANSMITTER){
 
         fd = openPort(port);
-        (void)signal(SIGALRM,&sig_handler);
 
         while (count<4 && notrecieved){
-          writeSFrame(fd, C_SET);
-          if ((notrecieved = recieveSFrame(fd, C_UA))==0){
-            break;
-          }
+            writeFrame(fd, A_E, C_SET);
+            activateAlarm();  
+            if ((notrecieved = recieveSFrame(fd,A_E, C_UA))==0){
+                desactivateAlarm();
+                break;
+
+            }            
         }
         if (notrecieved){
           perror("TIMEOUT");
@@ -158,9 +153,10 @@ int llopen(char *port, int flag){
     }
     else if (flag == RECEIVER){
         fd = openPort(port);
-        recieveSFrame(fd, C_SET);
+        recieveSFrame(fd ,A_E ,C_SET);
         printf("recebi a frame \n");
-        writeAnswerFrame(fd, 0x01);
+        sleep(2);
+        writeFrame(fd, A_E, C_UA);
     }
 
     return fd;
@@ -168,11 +164,10 @@ int llopen(char *port, int flag){
 }
 
 
+
 int openPort(char *port){
 
     int fd;
-
-
        
     fd = open(port, O_RDWR | O_NOCTTY);
     if (fd <0) {perror(port); exit(-1); }
@@ -205,18 +200,95 @@ int openPort(char *port){
     return fd;
 
 }
+ 
+ void activateAlarm(){
 
+    (void)signal(SIGALRM,&sig_handler);
+     printf("ACTIVATE ALARM\n");
+    alarmActive = FALSE;
+    alarm(TIMEOUT);
 
+ }
 
-int llclose(int fd){
+void desactivateAlarm(){
+    printf("DESACTIVATE ALARM\n");
+    alarm(0);
+    count = 0;
+    alarmActive = FALSE;
+}
 
- if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
-      perror("tcsetattr");
-      exit(-1);
-    }
+int llclose(int fd, unsigned char flag ){
+    count = 0;
+    int notrecieved = 1;
     
-    close(fd);
-    return 0;
+    if (flag ==TRANSMITTER){
+        while (count<4 && notrecieved){
+            sleep(4);
+            writeFrame(fd, A_E, C_DISC);
+            printf("Enviei o DISC\n");
+            activateAlarm();
+            if ((notrecieved = recieveSFrame(fd, A_R, C_DISC))==0){
+                printf("recebi o disc\n");
+                desactivateAlarm();
+                break;
+            }
+        }
+        if(notrecieved){
+            perror("Not recieved DISC frame\n");
+            exit(-1);
+        }
+        else{
+            writeFrame(fd, A_R, C_UA);
+            printf("enviei a resposta ao disc\n");
+        }
+
+    }
+    else if (flag == RECEIVER){
+        while (count<4 && notrecieved){
+            activateAlarm();
+            if ((notrecieved = recieveSFrame(fd, A_E, C_DISC))==0){
+                desactivateAlarm();
+                printf("recebi  disc RECETOR\n");
+                break;
+            }
+        }
+        if(notrecieved){
+            perror("TIMEOUT: Not recieved DISC frame\n");
+            exit(-1);
+        }
+        else{
+            count = 0;
+            notrecieved = 1;
+            while (count<4 && notrecieved){
+
+                writeFrame(fd, A_R, C_DISC);
+                printf("escrevi o disc RECETOR\n");
+                activateAlarm();
+                if ((notrecieved = recieveSFrame(fd, A_R, C_UA))==0){
+                    printf("recebi resposta ao disc RECETOR\n");
+                    desactivateAlarm();
+                    break;
+                }
+            }
+            if(notrecieved){
+                perror("TIMEOUT: Not recieved answer to DISC frame frame\n");
+                exit(-1);
+            }
+            
+
+        }
+        
+        
+    }
+
+
+    if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
+        perror("tcsetattr");
+        exit(-1);
+        }
+        
+        close(fd);
+        return 0;
 }
 
 
