@@ -5,8 +5,68 @@
 
 extern int alarmActive, count;
 struct termios oldtio,newtio;
+int currentNs = 0, currentNr = 1;       // Ns sent is by emitter , Nr is sent by receiver
 
+int writeIFrame(int fd, unsigned char *msg,  int lenght){
+    unsigned char frame[FRAME_SIZE];
+    int res;
 
+    if(lenght > MAX_DATA_D){
+        printf("Error: Data size to big to send\n");
+        return -1;
+    }
+    
+    frame[0] = FLAG;
+    frame[1] = A_E;
+    frame[2] = C_I(currentNs);
+    frame[3] = frame[1]  ^ frame[2];
+    
+    char currentXOR = frame[3];
+
+    int i, j;
+ 
+    for(i = 4, j = 0; j < lenght; i++, j++){      //i iterates over frame array. j iterates over msg array
+        
+        //Byte Stuffing
+        if(msg[j] == FLAG){                     
+            
+            frame[i++] = ESC;
+            frame[i] = FLAG_ESC;
+        }else if(msg[j] == ESC){
+            
+            frame[i++] = ESC;
+            frame[i] = ESC_ESC;
+        }else {
+
+            frame[i] = msg[j];            
+        }
+        currentXOR = currentXOR ^ msg[j];
+
+    }
+
+    //BCC2
+    if(currentXOR == FLAG){                     
+        
+        frame[i++] = ESC;
+        frame[i++] = FLAG_ESC;
+    }else if(currentXOR == ESC){
+        
+        frame[i++] = ESC;
+        frame[i++] = ESC_ESC;
+    }else {
+
+        frame[i++] = currentXOR;            
+    }  
+
+    frame[i++] = FLAG;
+
+    res = write(fd, frame, i); 
+    sleep(1);
+  
+    
+
+    return res;
+}
 
 
 int writeFrame(int fd, unsigned char A, unsigned char C){

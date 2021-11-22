@@ -24,16 +24,9 @@ int main(int argc, char** argv)
 
   char * fileName = argv[2]; 
   
-
-
-
-
-
   /* Open serial port device for reading and writing and not as controlling tty
   because we don't want to get killed if linenoise sends CTRL-C.
   */
-
-
 
   fd = llopen(argv[1], TRANSMITTER);
 
