@@ -5,7 +5,8 @@
 
 extern int alarmActive, count;
 struct termios oldtio,newtio;
-int currentNs = 0, currentNr = 1;       // Ns sent is by emitter , Nr is sent by receiver
+int NS = 0, NR = 1;       // NS is send by emitter , NR is sent by receiver
+int expectedNS = 0, expectedNR = 1;  // NS expected by the receiver and NR expected by the emitter
 
 int writeIFrame(int fd, unsigned char *msg,  int lenght){
     unsigned char frame[FRAME_SIZE];
@@ -18,7 +19,7 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     
     frame[0] = FLAG;
     frame[1] = A_E;
-    frame[2] = C_I(currentNs);
+    frame[2] = C_I(NS);
     frame[3] = frame[1]  ^ frame[2];
     
     char currentXOR = frame[3];
@@ -112,6 +113,95 @@ int writeRR(int fd)
 
 int receiveIFrame(int fd, unsigned char *r_msg)
 {
+
+    unsigned char frame[1];
+    unsigned char frameI[FRAME_SIZE];
+    int status = 0;
+    int res;
+
+    int index = 0;
+    while (status != 5){
+
+    if (alarmActive) {
+        printf("aqui");
+        break;
+    }
+
+
+
+    res = read(fd,&frame[index],1);
+    if (res==0){
+        continue;
+    }
+
+    printf("recebi %d byte %x \n",res, frame[index]); 
+
+
+
+    switch (status){
+        case 0: 
+            if (frame[index]==FLAG){
+                status=1;
+                printf("estado 1\n");
+        }
+        break;
+        case 1:
+            if (frame[index] == A_E){
+                status = 2;
+                printf("estado 2\n");
+
+            }
+            else if (frame[index] !=FLAG){
+                status = 0;
+                printf("help nao sei ler %x\n", frame[1]);
+
+            }
+        break;
+
+        case 2:
+            if (frame[index] == C_I(expectedNS)){
+                status = 3;
+                printf("estado 3\n");
+            }
+            else if (frame[index] == C_I(1) || frame[2] == C_I(0)){
+                return -2;
+            }
+            else if (frame[index] == FLAG)
+                status = 1;
+            else 
+                status=0;
+        break;
+
+        case 3:
+            if (frame[index] == C_I(expectedNS) ^ A_E){
+                status = 4;
+                printf("estado 4\n");
+
+            }
+            else if (frame[index] == FLAG)
+                status = 1;
+            else 
+                status=0;
+        break;
+        case 4:
+            if (frame[index] == FLAG){
+                printf("status 5\n");
+                status = 5;
+            }
+            else 
+                status=0;
+        break;
+        }
+
+
+    }
+
+
+    if (status != 5){
+        return -1;
+    }
+
+    return 0;
     // return -1   Tramas I novas com erro detectado 
     // return -2   Tramas I duplicadas
     // return 0    Tramas I novas sem erros  
