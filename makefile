@@ -6,13 +6,13 @@ LBLIBS =
 BUILD_PATH = build
 
 # Source code folders - Add $(wildcard path/to/object.o) if using a precompiled object such as adding an icon to the executable 
-SRC := $(wildcard src/**/**/**/**/*.c) $(wildcard src/**/**/**/*.c) $(wildcard src/**/**/*.c) $(wildcard src/**/*.c) $(wildcard src/*.c)
+SRC := $(wildcard *.c) $(wildcard src/*.c)
 
 #Objects
 OBJ := $(patsubst %.c,$(BUILD_PATH)/%.o,$(SRC))
 
 #Executable Name
-EXEC = RC_LAB1_APP
+EXEC = app
 
 all: $(EXEC)
 

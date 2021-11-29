@@ -1,9 +1,21 @@
-/*Non-Canonical Input Processing*/
-
-#define BAUDRATE B38400
-#define _POSIX_SOURCE 1 /* POSIX compliant source */
-
 #include "reader.h"
+
+void reader(char *port)
+{
+  int fd;
+
+  fd = llopen(port, RECEIVER );
+
+
+
+  llclose(fd, RECEIVER);
+  return ;
+}
+
+/*
+#define BAUDRATE B38400
+#define _POSIX_SOURCE 1 
+
 
 unsigned char set[5];
 unsigned char ua[5];
@@ -20,12 +32,6 @@ int main(int argc, char** argv)
       exit(1);
     }
 
-
-  /*
-    Open serial port device for reading and writing and not as controlling tty
-    because we don't want to get killed if linenoise sends CTRL-C.
-  */
-    
     fd = llopen(argv[1], RECEIVER );
   
 
@@ -33,3 +39,4 @@ int main(int argc, char** argv)
     llclose(fd, RECEIVER);
     return 0;
 }
+*/
