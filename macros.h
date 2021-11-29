@@ -16,8 +16,12 @@
 
 
 
+#define MAX_SIZE 1600
 
-
+#define START 2
+#define END 3
+#define FILENAME 1
+#define FILESIZE 0
 
 #define TRANSMITTER 0x01
 #define RECEIVER 0X00

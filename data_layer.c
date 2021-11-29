@@ -1,12 +1,7 @@
-
 #include "data_layer.h"
-
-
 
 extern int alarmActive, count;
 struct termios oldtio,newtio;
-
-
 
 
 int writeFrame(int fd, unsigned char A, unsigned char C){
@@ -52,14 +47,13 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
           printf("aqui");
           break;
         }
-
     
         if (index > 4) index = 0;
 
-        res = read(fd,&frame[index],1);
-        if (res==0){
+        
+        if ((res = read(fd,&frame[index],1))==0)   
             continue;
-        }
+
         printf("recebi %d byte %x \n",res, frame[index]); 
 
         index++;
@@ -80,7 +74,6 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
                 else if (frame[1] !=FLAG){
                     status = 0;
                     printf("help nao sei ler %x\n", frame[1]);
-
                 }
             break;
 
@@ -274,11 +267,7 @@ int llclose(int fd, unsigned char flag ){
                 perror("TIMEOUT: Not recieved answer to DISC frame frame\n");
                 exit(-1);
             }
-            
-
-        }
-        
-        
+        }       
     }
 
 

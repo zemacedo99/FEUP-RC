@@ -25,8 +25,6 @@ int main(int argc, char** argv)
     Open serial port device for reading and writing and not as controlling tty
     because we don't want to get killed if linenoise sends CTRL-C.
   */
-   (void)signal(SIGALRM,&sig_handler);
-
     
     fd = llopen(argv[1], RECEIVER );
     if (fd <0) {perror(argv[1]); exit(-1); }
