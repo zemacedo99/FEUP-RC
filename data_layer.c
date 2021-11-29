@@ -164,7 +164,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
                 printf("estado 3\n");
             }
             else if (frame[index] == C_I(1) || frame[2] == C_I(0)){
-                return -2;
+                return -2; //Tramas I duplicadas
             }
             else if (frame[index] == FLAG)
                 status = 1;
@@ -203,13 +203,13 @@ int receiveIFrame(int fd, unsigned char *buffer)
         return -1;
     }
 
-    return 0;
+    return 0;  
     // return -1   Tramas I novas com erro detectado 
-    // return -2   Tramas I duplicadas
-    // return 0    Tramas I novas sem erros  
+
+      
 }
 
-int ReceiveIData(int fd, unsigned char * frameI, unsigned char  *buffer){
+int receiveIData(int fd, unsigned char * frameI, unsigned char  *buffer){
 
 }
 
