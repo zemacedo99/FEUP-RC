@@ -111,7 +111,7 @@ int writeRR(int fd)
 
 }
 
-int receiveIFrame(int fd, unsigned char *r_msg)
+int receiveIFrame(int fd, unsigned char *buffer)
 {
 
     unsigned char frame[1];
@@ -177,6 +177,8 @@ int receiveIFrame(int fd, unsigned char *r_msg)
                 status = 4;
                 printf("estado 4\n");
 
+                int ret = receiveIData(fd, frameI, buffer);
+
             }
             else if (frame[index] == FLAG)
                 status = 1;
@@ -205,6 +207,10 @@ int receiveIFrame(int fd, unsigned char *r_msg)
     // return -1   Tramas I novas com erro detectado 
     // return -2   Tramas I duplicadas
     // return 0    Tramas I novas sem erros  
+}
+
+int ReceiveIData(int fd, unsigned char * frameI, unsigned char  *buffer){
+
 }
 
 int receiveRFrame(int fd, unsigned char *r_msg)
