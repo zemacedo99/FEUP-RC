@@ -13,6 +13,7 @@ int main(int argc, char** argv)
   int fd;
   unsigned char package[MAX_SIZE];  
   FILE *fp;
+  int seq = 0;
   
   if ( (argc < 3) || 
         ((strcmp("/dev/ttyS0", argv[1])!=0) && 
@@ -37,6 +38,15 @@ int main(int argc, char** argv)
         printf("PACKAGE %c\n", package[i]);
     }
   //llwrite(fd, package, &size);  //send control package 
+
+  //while true criar packages com numero da sequencia * contentSize e faz-se fread manda-se isso e retorna-se 
+
+  while (TRUE){
+
+
+  }
+
+
   
 
 
