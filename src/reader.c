@@ -1,4 +1,4 @@
-#include "reader.h"
+#include "../lib/reader.h"
 
 void reader(char *port)
 {

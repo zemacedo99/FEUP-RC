@@ -1,4 +1,4 @@
-#include "writer.h"
+#include "../lib/writer.h"
 
 
 void writer(char *port, char * fileName)

@@ -1,5 +1,6 @@
-#include "alarme.h"
- int alarmActive = FALSE, count=0, i = 0;
+#include "../lib/alarme.h"
+
+int alarmActive = FALSE, count=0, i = 0;
 
 
 
