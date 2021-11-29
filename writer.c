@@ -31,6 +31,19 @@ int main(int argc, char** argv)
   fd = llopen(argv[1], TRANSMITTER);
 
     
+    unsigned char  msg[8] ;
+    int lenght = 8;
+    msg[0]=0x7e;
+    msg[1]=0x63;
+    msg[2]=0x7d;
+    msg[3]=0x7a;
+    msg[4]=0x7d;
+    msg[5]=0x7a;
+    msg[6]=0x22;
+    msg[7]=0x7e;
+   
+    writeIFrame(fd,msg,lenght);
+    
 
 
 

@@ -1,4 +1,4 @@
-
+ 
 #include "data_layer.h"
 
 
@@ -41,7 +41,8 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
             frame[i] = msg[j];            
         }
         currentXOR = currentXOR ^ msg[j];
-
+        printf("xor %d : %x\n",i,currentXOR);
+        printf("teste %d : %x\n",i,frame[i]);
     }
 
     //BCC2
@@ -58,9 +59,11 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
         frame[i++] = currentXOR;            
     }  
 
+    printf("teste BCC2 %d : %x\n",i++,currentXOR);
     frame[i++] = FLAG;
+   
 
-    res = write(fd, frame, i); 
+    //res = write(fd, frame, i); 
     sleep(1);
   
     
