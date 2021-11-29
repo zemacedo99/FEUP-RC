@@ -1,13 +1,75 @@
-
+ 
 #include "data_layer.h"
 
 
 
 extern int alarmActive, count;
 struct termios oldtio,newtio;
+int currentNs = 0, currentNr = 1;       // Ns sent is by emitter , Nr is sent by receiver
 
+int writeIFrame(int fd, unsigned char *msg,  int lenght){
+    unsigned char frame[FRAME_SIZE];
+    int res;
 
+    if(lenght > MAX_DATA_D){
+        printf("Error: Data size to big to send\n");
+        return -1;
+    }
+    
+    frame[0] = FLAG;
+    frame[1] = A_E;
+    frame[2] = C_I(currentNs);
+    frame[3] = frame[1]  ^ frame[2];
+    
+    char currentXOR = frame[3];
 
+    int i, j;
+ 
+    for(i = 4, j = 0; j < lenght; i++, j++){      //i iterates over frame array. j iterates over msg array
+        
+        //Byte Stuffing
+        if(msg[j] == FLAG){                     
+            
+            frame[i++] = ESC;
+            frame[i] = FLAG_ESC;
+        }else if(msg[j] == ESC){
+            
+            frame[i++] = ESC;
+            frame[i] = ESC_ESC;
+        }else {
+
+            frame[i] = msg[j];            
+        }
+        currentXOR = currentXOR ^ msg[j];
+        printf("xor %d : %x\n",i,currentXOR);
+        printf("teste %d : %x\n",i,frame[i]);
+    }
+
+    //BCC2
+    if(currentXOR == FLAG){                     
+        
+        frame[i++] = ESC;
+        frame[i++] = FLAG_ESC;
+    }else if(currentXOR == ESC){
+        
+        frame[i++] = ESC;
+        frame[i++] = ESC_ESC;
+    }else {
+
+        frame[i++] = currentXOR;            
+    }  
+
+    printf("teste BCC2 %d : %x\n",i++,currentXOR);
+    frame[i++] = FLAG;
+   
+
+    //res = write(fd, frame, i); 
+    sleep(1);
+  
+    
+
+    return res;
+}
 
 int writeFrame(int fd, unsigned char A, unsigned char C){
     unsigned char frame[5];
@@ -38,6 +100,27 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
   
 }
 
+int writeREJ(int fd)
+{
+
+}
+
+int writeRR(int fd)
+{
+
+}
+
+int receiveIFrame(int fd, unsigned char *r_msg)
+{
+    // return -1   Tramas I novas com erro detectado 
+    // return -2   Tramas I duplicadas
+    // return 0    Tramas I novas sem erros  
+}
+
+int receiveRFrame(int fd, unsigned char *r_msg)
+{
+
+}
 
 int recieveSFrame(int fd,unsigned char A, unsigned char C){
 
@@ -291,4 +374,65 @@ int llclose(int fd, unsigned char flag ){
         return 0;
 }
 
+/*
+int llwrite(int fd, char * buffer, int length)
+{
+    count = 0;
+    int r;
+    int numberWrittenChars;
+    
+    while(count<4 && r)
+    {
+        numberWrittenChars = writeIFrame(fd, buffer, length);
+        activateAlarm(); 
 
+        r = recieveRFrame();
+        
+        if(r == REJ)
+        {
+
+        }
+        else if(r == RR)
+        {
+
+        }
+        else if(r == RR_REPEATED)
+        {
+        
+        }
+        else if(r == TIME_OUT)
+        {
+            
+        }
+        
+    }
+    //update ao ns e ao nr
+    return numberWrittenChars;
+}
+
+int llread(int fd, char * buffer)
+{
+    int r = receiveIFrame(fd, buffer);
+    while(1)
+    {
+        if(r == -1)
+        {
+            writeREJ(fd);
+            r = receiveIFrame(fd, buffer);
+          
+        }
+        else if(r == -2){
+            writeRR(fd);
+            r = receiveIFrame(fd, buffer);
+            
+        }
+        else
+        {
+            writeRR(fd);
+            //update ao ns e ao nr
+            return r;
+        }
+        
+    }
+}
+*/
