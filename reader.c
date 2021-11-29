@@ -13,7 +13,7 @@ int main(int argc, char** argv)
     int fd,c, res;
 
 
-    if ( (argc < 3) || 
+    if ( (argc < 2) || 
   	     ((strcmp("/dev/ttyS0", argv[1])!=0) && 
   	      (strcmp("/dev/ttyS1", argv[1])!=0) )) {
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
@@ -27,7 +27,6 @@ int main(int argc, char** argv)
   */
     
     fd = llopen(argv[1], RECEIVER );
-    if (fd <0) {perror(argv[1]); exit(-1); }
   
 
   
