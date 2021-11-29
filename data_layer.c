@@ -68,7 +68,6 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     return res;
 }
 
-
 int writeFrame(int fd, unsigned char A, unsigned char C){
     unsigned char frame[5];
     int res;
@@ -98,6 +97,27 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
   
 }
 
+int writeREJ(int fd)
+{
+
+}
+
+int writeRR(int fd)
+{
+
+}
+
+int receiveIFrame(int fd, unsigned char *r_msg)
+{
+    // return -1   Tramas I novas com erro detectado 
+    // return -2   Tramas I duplicadas
+    // return 0    Tramas I novas sem erros  
+}
+
+int receiveRFrame(int fd, unsigned char *r_msg)
+{
+
+}
 
 int recieveSFrame(int fd,unsigned char A, unsigned char C){
 
@@ -351,4 +371,65 @@ int llclose(int fd, unsigned char flag ){
         return 0;
 }
 
+/*
+int llwrite(int fd, char * buffer, int length)
+{
+    count = 0;
+    int r;
+    int numberWrittenChars;
+    
+    while(count<4 && r)
+    {
+        numberWrittenChars = writeIFrame(fd, buffer, length);
+        activateAlarm(); 
 
+        r = recieveRFrame();
+        
+        if(r == REJ)
+        {
+
+        }
+        else if(r == RR)
+        {
+
+        }
+        else if(r == RR_REPEATED)
+        {
+        
+        }
+        else if(r == TIME_OUT)
+        {
+            
+        }
+        
+    }
+    //update ao ns e ao nr
+    return numberWrittenChars;
+}
+
+int llread(int fd, char * buffer)
+{
+    int r = receiveIFrame(fd, buffer);
+    while(1)
+    {
+        if(r == -1)
+        {
+            writeREJ(fd);
+            r = receiveIFrame(fd, buffer);
+          
+        }
+        else if(r == -2){
+            writeRR(fd);
+            r = receiveIFrame(fd, buffer);
+            
+        }
+        else
+        {
+            writeRR(fd);
+            //update ao ns e ao nr
+            return r;
+        }
+        
+    }
+}
+*/
