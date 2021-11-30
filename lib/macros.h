@@ -35,3 +35,15 @@
 
 #define TRANSMITTER 0x01
 #define RECEIVER 0X00
+
+//RR message
+#define C_RR(nr) (unsigned char)((nr << 7) | 0x05) 
+
+//REJ message
+#define C_REJ(nr) (unsigned char)((nr << 7) | 0x01)
+
+//answer frames 
+#define RR 0
+#define TIMEOUT 1
+#define REJ 2
+#define RR_REPEAT 3

@@ -6,6 +6,10 @@ void reader(char *port)
 
   fd = llopen(port, RECEIVER );
 
+  while (TRUE){
+      //llread();
+  }
+
 
 
   llclose(fd, RECEIVER);

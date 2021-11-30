@@ -115,12 +115,12 @@ int receiveIFrame(int fd, unsigned char *buffer)
 {
 
     unsigned char frame[1];
-    unsigned char frameI[FRAME_SIZE];
+    unsigned char bcc1;
     int status = 0;
     int res;
 
     int index = 0;
-    while (status != 5){
+    while (status != 4){
 
     if (alarmActive) {
         printf("aqui");
@@ -164,7 +164,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
                 printf("estado 3\n");
             }
             else if (frame[index] == C_I(1) || frame[2] == C_I(0)){
-                return -2; //Tramas I duplicadas
+                return RR_REPEAT; //Tramas I duplicadas
             }
             else if (frame[index] == FLAG)
                 status = 1;
@@ -175,9 +175,11 @@ int receiveIFrame(int fd, unsigned char *buffer)
         case 3:
             if (frame[index] == C_I(expectedNS) ^ A_E){
                 status = 4;
-                printf("estado 4\n");
-
-                int ret = receiveIData(fd, frameI, buffer);
+                printf("estado 4\n"); 
+                bcc1 = frame[index];
+                int ret = receiveIData(fd,bcc1, buffer);
+                
+                return ret;
 
             }
             else if (frame[index] == FLAG)
@@ -185,14 +187,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
             else 
                 status=0;
         break;
-        case 4:
-            if (frame[index] == FLAG){
-                printf("status 5\n");
-                status = 5;
-            }
-            else 
-                status=0;
-        break;
+       
         }
 
 
@@ -203,18 +198,155 @@ int receiveIFrame(int fd, unsigned char *buffer)
         return -1;
     }
 
-    return 0;  
-    // return -1   Tramas I novas com erro detectado 
+    
+
+    return RR;  
+    // return REJ   Tramas I novas com erro detectado 
 
       
 }
 
-int receiveIData(int fd, unsigned char * frameI, unsigned char  *buffer){
+int receiveIData(int fd, unsigned char  *bcc1, unsigned char  *buffer){
 
+    int bufferSize = 0;
+    int res;
+    unsigned char frame = 0;
+
+    char currentXOR = bcc1;
+
+    
+    while(frame != FLAG){
+        
+        res = read(fd,&frame,1);
+        if (res==0){
+            continue;
+        }
+        //Byte destuffing
+
+        if(frame == ESC){
+
+            res = read(fd,&frame,1);
+                    if (res==0){
+                        continue;
+                    }
+
+            if(frame == FLAG_ESC){
+
+                buffer[bufferSize++] = FLAG;
+
+            }else if(frame == ESC_ESC){
+
+                buffer[bufferSize++] = ESC;
+
+            }
+
+        }else{
+            
+            buffer[bufferSize++] = frame;
+
+        }        
+        
+    }
+
+    // if(erro) return -1
+
+    return bufferSize;
 }
 
-int receiveRFrame(int fd, unsigned char *r_msg)
+int receiveRFrame(int fd)
 {
+
+    unsigned char frame;
+      int status = 0;
+      int res;
+      unsigned char C = 0;
+      int answerType;
+    
+      int index = 0;
+      while (status != 5){
+
+        if (alarmActive) {
+          return TIMEOUT;
+        }
+    
+        
+        if ((res = read(fd,&frame,1))==0)   
+            continue;
+
+        printf("recebi %d byte %x \n",res, frame); 
+
+
+        switch (status){
+            case 0: 
+                if (frame==FLAG){
+                    status=1;
+                    printf("estado 1\n");
+            }
+            break;
+            case 1:
+                if (frame == A_E){
+                    status = 2;
+                    printf("estado 2\n");
+
+                }
+                else if (frame !=FLAG){
+                    status = 0;
+                    printf("help nao sei ler %x\n", frame);
+                }
+            break;
+
+            case 2:
+                if (frame == C_RR(expectedNR)){
+                    C = frame;
+                    status = 3;
+                    answerType = RR;
+                    printf("estado 3\n");
+                }
+                else if (frame == C_RR(0) || frame == C_RR(1) ){
+                    C = frame;
+                    answerType = RR_REPEAT; // wrong C answear repeated
+                }
+                else if ( frame == C_REJ(expectedNR)){
+                    C = frame;
+                    answerType =REJ; 
+                    
+                }
+                else if ( frame == C_REJ(0)|| frame == C_REJ(1)){
+                    C = frame;
+                    answerType =RR_REPEAT; 
+                    
+                }
+                else if (frame == FLAG)
+                    status = 1;
+                else 
+                    status=0;
+            break;
+
+            case 3:
+                if (frame == C ^ A_E){
+                    status = 4;
+                    printf("estadp 4\n");
+
+                }
+                else if (frame== FLAG)
+                    status = 1;
+                else 
+                    status=0;
+            break;
+            case 4:
+                if (frame == FLAG){
+                  printf("status 5\n");
+                  status = 5;
+                }
+                else 
+                    status=0;
+            break;
+            }
+        }
+        
+
+    return answerType;
+
 
 }
 
@@ -228,8 +360,7 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
       while (status != 5){
 
         if (alarmActive) {
-          printf("aqui");
-          break;
+          return TIMEOUT;
         }
     
         
@@ -289,9 +420,6 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
                     status=0;
             break;
             }
-        }
-        if (status != 5){
-            return 1;
         }
 
     return 0;
@@ -461,65 +589,79 @@ int llclose(int fd, unsigned char flag ){
         return 0;
 }
 
-/*
+
 int llwrite(int fd, char * buffer, int length)
 {
     count = 0;
-    int r;
-    int numberWrittenChars;
+    int numberWrittenChars, r;
     
-    while(count<4 && r)
+    while(count<4)
     {
         numberWrittenChars = writeIFrame(fd, buffer, length);
         activateAlarm(); 
 
         r = recieveRFrame();
         
-        if(r == REJ)
+    
+         if(r == RR || RR_REPEAT)
         {
+            desactivateAlarm();
+            printf("Answer RR recieved");
+            break;
+        }
+        else if (r == REJ){
+            desactivateAlarm();
+            printf("Answer REJ recieved");
 
-        }
-        else if(r == RR)
-        {
-
-        }
-        else if(r == RR_REPEATED)
-        {
-        
-        }
-        else if(r == TIME_OUT)
-        {
-            
         }
         
     }
-    //update ao ns e ao nr
+    if( count> 4){
+        return -1;
+    }
+    
+    updateSenderN();
+
     return numberWrittenChars;
 }
 
 int llread(int fd, char * buffer)
 {
-    int r = receiveIFrame(fd, buffer);
     while(1)
     {
-        if(r == -1)
+        int r = receiveIFrame(fd, buffer);
+
+        if(r == REJ)
         {
             writeREJ(fd);
-            r = receiveIFrame(fd, buffer);
           
         }
-        else if(r == -2){
+        else if(r == RR_REPEAT){
             writeRR(fd);
-            r = receiveIFrame(fd, buffer);
-            
         }
-        else
+        else if (r == RR)
         {
             writeRR(fd);
+            updateRecieverN();
             //update ao ns e ao nr
             return r;
         }
         
     }
 }
-*/
+
+void updateRecieverN(){
+    if (expectedNS == 1) expectedNS = 0;
+    else expectedNS = 1;
+
+    if (NR == 1) NR = 0;
+    else NR = 1;
+}
+
+void updateSenderN(){
+    if (expectedNR == 1) expectedNR = 0;
+    else expectedNR = 1;
+
+    if (NS == 1) NS = 0;
+    else NS = 1;
+}
