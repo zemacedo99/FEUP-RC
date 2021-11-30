@@ -47,3 +47,20 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
 
     return 0;
 }
+
+int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char * data, unsigned char * package){
+
+    package[0] = DATA;
+    package[1] = seqNum % 256;
+    package[2] = dataSize / 256;
+    package[3] = dataSize % 256;
+
+    if (memcpy(&package[4] , data, dataSize)==NULL){
+        perror("Failed loading file name\n");
+        return -1;
+    }
+
+    return 0;
+
+}
+
