@@ -81,6 +81,8 @@ int main(int argc, char** argv)
 
 
     
+   int size = createControlPackage(END, fileName, fileSize, package); 
+    //llwrite(fd, package, &size);
 
 
 
