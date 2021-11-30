@@ -11,7 +11,7 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     unsigned char frame[FRAME_SIZE];
     int res;
 
-    if(lenght > MAX_DATA_D){
+    if(lenght > MAX_DATA_SIZE){
         printf("Error: Data size to big to send\n");
         return -1;
     }
@@ -82,6 +82,7 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
     frame[4] = FLAG;
 
     res = write(fd,frame,5);
+    printf("enciar coneas\n");
     for (int i= 0 ; i<5; i++){
         printf("enviei %x\n", frame[i]);
     }
@@ -219,7 +220,7 @@ int receiveRFrame(int fd, unsigned char *r_msg)
 
 int recieveSFrame(int fd,unsigned char A, unsigned char C){
 
-      unsigned char frame[5];
+      unsigned char frame;
       int status = 0;
       int res;
 
@@ -230,62 +231,57 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
           printf("aqui");
           break;
         }
-
     
-        if (index > 4) index = 0;
-
-        res = read(fd,&frame[index],1);
-        if (res==0){
+        
+        if ((res = read(fd,&frame,1))==0)   
             continue;
-        }
-        printf("recebi %d byte %x \n",res, frame[index]); 
 
-        index++;
+        printf("recebi %d byte %x \n",res, frame); 
+
 
         switch (status){
             case 0: 
-                if (frame[0]==FLAG){
+                if (frame==FLAG){
                     status=1;
                     printf("estado 1\n");
             }
             break;
             case 1:
-                if (frame[1] == A){
+                if (frame == A){
                     status = 2;
                     printf("estado 2\n");
 
                 }
-                else if (frame[1] !=FLAG){
+                else if (frame !=FLAG){
                     status = 0;
-                    printf("help nao sei ler %x\n", frame[1]);
-
+                    printf("help nao sei ler %x\n", frame);
                 }
             break;
 
             case 2:
-                if (frame[2] == C){
+                if (frame == C){
                     status = 3;
                     printf("estado 3\n");
                 }
-                else if (frame[2] == FLAG)
+                else if (frame == FLAG)
                     status = 1;
                 else 
                     status=0;
             break;
 
             case 3:
-                if (frame[3] == C ^ A){
+                if (frame == C ^ A){
                     status = 4;
                     printf("estadp 4\n");
 
                 }
-                else if (frame[3] == FLAG)
+                else if (frame== FLAG)
                     status = 1;
                 else 
                     status=0;
             break;
             case 4:
-                if (frame[4] == FLAG){
+                if (frame == FLAG){
                   printf("status 5\n");
                   status = 5;
                 }
@@ -452,11 +448,7 @@ int llclose(int fd, unsigned char flag ){
                 perror("TIMEOUT: Not recieved answer to DISC frame frame\n");
                 exit(-1);
             }
-            
-
-        }
-        
-        
+        }       
     }
 
 

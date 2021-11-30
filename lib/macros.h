@@ -16,7 +16,16 @@
 #define C_I(x) (unsigned char )(x << 6)
 
 #define FRAME_SIZE 16384  // Maximum size of frame of data information
-#define MAX_DATA_D (FRAME_SIZE - 6) / 2 // Maximum size of data that can be send
+#define MAX_DATA_SIZE (FRAME_SIZE - 6) / 2 // Maximum size of data that can be send
+
+
+#define MAX_SIZE 1600
+
+#define START 2
+#define END 3
+#define FILENAME 1
+#define FILESIZE 0
+#define DATA 1
 
 //Byte Stuffing
 #define ESC 0x7d
