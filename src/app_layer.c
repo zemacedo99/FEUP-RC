@@ -64,3 +64,44 @@ int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char 
 
 }
 
+
+int readControlPackage(unsigned char * package, unsigned char * fileName, int* fileSize){
+    int fileNameSize;
+    unsigned char * fileSize_string = (char*)malloc(sizeof(int));  //ver melhor
+    int index = 3;
+    if (package[1] == FILENAME ){
+        fileNameSize = package[2];
+
+        for (int i = index; i<fileNameSize;i++){
+            if (memcpy(fileName, &package[i], fileNameSize) == NULL){
+                perror("Not possible to parse nameFile \n");
+                return -1;
+        }
+    }
+    }
+    index += fileNameSize;
+    if (package[index++] == FILESIZE ){
+        int lenthSize = package[index++];
+        for (int i = index; i<fileNameSize;i++){
+            if (memcpy(fileSize, &package[i], lenthSize) == NULL){
+                perror("Not possible to parse nameFile \n");
+                return -1;
+            }
+        }
+        sscanf(fileSize_string, "%d", fileSize);   
+    }
+    PRINT_SUC("Read control package."); 
+    free(fileSize_string);
+    return 0; 
+
+
+}
+
+
+int readDataPackage(unsigned char* package, int* seq,unsigned char * data){
+
+
+    return 0;
+
+}
+

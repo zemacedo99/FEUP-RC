@@ -457,7 +457,6 @@ int llopen(char *port, unsigned char flag){
         fd = openPort(port);
         recieveSFrame(fd ,A_E ,C_SET);
         printf("recebi a frame \n");
-        sleep(2);
         writeFrame(fd, A_E, C_UA);
     }
 
@@ -625,7 +624,7 @@ int llwrite(int fd, char * buffer, int length)
     return numberWrittenChars;
 }
 
-int llread(int fd, char * buffer)
+int llread(int fd, unsigned char * buffer)
 {
     while(1)
     {
@@ -633,17 +632,15 @@ int llread(int fd, char * buffer)
 
         if(r == REJ)
         {
-            writeREJ(fd);
-          
+            writeFrame(fd, A_E, C_REJ(NR));
         }
         else if(r == RR_REPEAT){
-            writeRR(fd);
+            writeFrame(fd, A_E, C_RR(NR));
         }
         else if (r == RR)
         {
-            writeRR(fd);
+            writeFrame(fd, A_E, C_RR(NR));
             updateRecieverN();
-            //update ao ns e ao nr
             return r;
         }
         
