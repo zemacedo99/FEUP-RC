@@ -122,88 +122,76 @@ int receiveIFrame(int fd, unsigned char *buffer)
     int index = 0;
     while (status != 4){
 
-    if (alarmActive) {
-        printf("aqui");
-        break;
-    }
-
-
-
-    res = read(fd,&frame[index],1);
-    if (res==0){
-        continue;
-    }
-
-    printf("recebi %d byte %x \n",res, frame[index]); 
-
-
-
-    switch (status){
-        case 0: 
-            if (frame[index]==FLAG){
-                status=1;
-                printf("estado 1\n");
-        }
-        break;
-        case 1:
-            if (frame[index] == A_E){
-                status = 2;
-                printf("estado 2\n");
-
-            }
-            else if (frame[index] !=FLAG){
-                status = 0;
-                printf("help nao sei ler %x\n", frame[1]);
-
-            }
-        break;
-
-        case 2:
-            if (frame[index] == C_I(expectedNS)){
-                status = 3;
-                printf("estado 3\n");
-            }
-            else if (frame[index] == C_I(1) || frame[2] == C_I(0)){
-                return RR_REPEAT; //Tramas I duplicadas
-            }
-            else if (frame[index] == FLAG)
-                status = 1;
-            else 
-                status=0;
-        break;
-
-        case 3:
-            if (frame[index] == C_I(expectedNS) ^ A_E){
-                status = 4;
-                printf("estado 4\n"); 
-                bcc1 = frame[index];
-                int ret = receiveIData(fd,bcc1, buffer);
-                
-                return ret;
-
-            }
-            else if (frame[index] == FLAG)
-                status = 1;
-            else 
-                status=0;
-        break;
-       
+        if (alarmActive) {
+            printf("aqui");
+            break;
         }
 
 
+
+        res = read(fd,&frame[index],1);
+        if (res==0){
+            continue;
+        }
+
+        printf("recebi %d byte %x \n",res, frame[index]); 
+
+
+
+        switch (status){
+            case 0: 
+                if (frame[index]==FLAG){
+                    status=1;
+                    printf("estado 1\n");
+                }
+            break;
+            case 1:
+                if (frame[index] == A_E){
+                    status = 2;
+                    printf("estado 2\n");
+
+                }
+                else if (frame[index] !=FLAG){
+                    status = 0;
+                    printf("help nao sei ler %x\n", frame[1]);
+
+                }
+            break;
+
+            case 2:
+                if (frame[index] == C_I(expectedNS)){
+                    status = 3;
+                    printf("estado 3\n");
+                }
+                else if (frame[index] == C_I(1) || frame[2] == C_I(0)){
+                    return RR_REPEAT; //Tramas I duplicadas
+                }
+                else if (frame[index] == FLAG)
+                    status = 1;
+                else 
+                    status=0;
+            break;
+
+            case 3:
+                if (frame[index] == C_I(expectedNS) ^ A_E){
+                    status = 4;
+                    printf("estado 4\n"); 
+                    bcc1 = frame[index];
+                    res = receiveIData(fd,bcc1, buffer);
+                    
+                    return res;
+
+                }
+                else if (frame[index] == FLAG)
+                    status = 1;
+                else 
+                    status=0;
+            break;
+        
+        }
     }
 
-
-    if (status != 5){
-        return -1;
-    }
-
-    
-
-    return RR;  
-    // return REJ   Tramas I novas com erro detectado 
-
-      
+    return RR;  // Trama I sem erros
 }
 
 int receiveIData(int fd, unsigned char  *bcc1, unsigned char  *buffer){
@@ -215,42 +203,50 @@ int receiveIData(int fd, unsigned char  *bcc1, unsigned char  *buffer){
     char currentXOR = bcc1;
 
     
-    while(frame != FLAG){
+    while(1){
         
         res = read(fd,&frame,1);
         if (res==0){
             continue;
+        }
+
+        if(frame == FLAG)
+        {
+            break;
         }
         //Byte destuffing
 
         if(frame == ESC){
 
             res = read(fd,&frame,1);
-                    if (res==0){
-                        continue;
-                    }
+            if (res==0){
+                continue;
+            }
 
             if(frame == FLAG_ESC){
-
                 buffer[bufferSize++] = FLAG;
-
+                currentXOR = currentXOR ^ FLAG;
             }else if(frame == ESC_ESC){
-
                 buffer[bufferSize++] = ESC;
-
+                currentXOR = currentXOR ^ ESC;
             }
 
         }else{
             
             buffer[bufferSize++] = frame;
+            currentXOR = currentXOR ^ frame;
 
         }        
         
     }
 
-    // if(erro) return -1
+    buffer[bufferSize] = frame; // store the flag
 
-    return bufferSize;
+    if(currentXOR != buffer[bufferSize - 1]){
+        return REJ; //Trama I com erros
+    }
+
+    return bufferSize + 1;
 }
 
 int receiveRFrame(int fd)
