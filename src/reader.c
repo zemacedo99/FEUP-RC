@@ -36,21 +36,31 @@ void reader(char *port)
         }
 
       if (package[0]== DATA){
-        res = readDataPackage(package, &seq, data);//POR FAZER
+        if (res = readDataPackage(package, &seq, data)<0){
+          exit (-1);
+        };//POR FAZER
         fwrite(data, 1, length, fp); 
 
       }
 
       else if (package[0] == END){
-        if (readControlPackage(package, fileName, &fileSize)==0){
-          //CHECAR SE OS VALORES RETORNADOS ESTÃO BEM
+        char * endFileName = (char*)malloc(sizeof(char)*MAX_DATA_SIZE);
+        int endSize;
 
-        }
-
-      }
-      
-
+        if (readControlPackage(package, endFileName, &endSize)==0){
+            if (strcmp(endFileName, fileName) != 0){
+                perror("Incompatible information recieved\n");
+                exit (-1);
+            }
+            if (fileSize != endSize){
+                perror("Incompatible information recieved\n");
+                exit(-1);
+            }
+            break;
+        }       
+      }    
   }
+
 
 
 

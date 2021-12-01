@@ -616,6 +616,7 @@ int llwrite(int fd, char * buffer, int length)
         
     }
     if( count> 4){
+        perror("TIMEOUT\n");
         return -1;
     }
     

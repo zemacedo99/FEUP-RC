@@ -26,7 +26,7 @@ void writer(char *port, char * fileName)
   for (int i = 3; i<3 + strlen(fileName); i++){
         printf("PACKAGE %c\n", package[i]);
     }
-  //llwrite(fd, package, &size);  //send control package 
+  llwrite(fd, package, &size);  //send control package 
 
   //while true criar packages com numero da sequencia * contentSize e faz-se fread manda-se isso e retorna-se 
 
@@ -44,27 +44,17 @@ void writer(char *port, char * fileName)
         perror("Failed creating data Package\n");
         return -1;
       }
-      //llwrite()
+      if (llwrite(fd, package, &size) == -1){
+        return (-1);
+      }
 
       seq++;
 
   }
 
-
-  
-
-
-
-
-  /* Open serial port device for reading and writing and not as controlling tty
-  because we don't want to get killed if linenoise sends CTRL-C.
-  */
-
-
-
     
   size = createControlPackage(END, fileName, fileSize, package); 
-    //llwrite(fd, package, &size);
+  llwrite(fd, package, &size);
 
 
 

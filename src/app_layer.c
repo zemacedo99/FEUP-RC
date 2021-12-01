@@ -1,10 +1,6 @@
 #include "../lib/app_layer.h"
 
 
-int sendPackage(){
-    return 0;
-}
-
 int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsigned char* package ){
     
     
@@ -100,8 +96,15 @@ int readControlPackage(unsigned char * package, unsigned char * fileName, int* f
 
 int readDataPackage(unsigned char* package, int* seq,unsigned char * data){
 
+    seq = package[1];
+    int size = package[2]* 256 + package[3]%256;
 
-    return 0;
+    if (memcpy(data, &package[4], size) == NULL){
+        perror("Error parsing info."); 
+        return -1; 
+    }
+
+    return size; 
 
 }
 
