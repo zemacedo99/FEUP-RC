@@ -21,10 +21,14 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
 
     printf("Acabou\n");
 
-    int position = 3 + package[2];
+    int position = 3 + strlen(fileName);
 
     char * length_string = (char*)malloc(sizeof(int)); 
-    sprintf(length_string, "%d", fileSize);   
+    sprintf(length_string, "%d", fileSize);  
+
+    printf("%d", fileSize ); 
+    printf("%d", strlen(length_string) ); 
+
 
     package[position +1 ] = FILESIZE;
     package[position +2 ] =  strlen(length_string);
@@ -33,19 +37,17 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
         perror("Failed loading file name\n");
         return -1;
     }
-    for (int i = position +3; i < position + 3 + strlen(fileName); i++){
+     for (int i = position +3; i< 3+  strlen(length_string); i++){
         printf("PACKAGE %c\n", package[i]);
     }
 
-    for (int i = 0; i<position + 3  +  strlen(length_string); i++){
-        printf("PACKAGE %x\n", package[i]);
-    }
-
-    return 0;
+  
+    return 3 + strlen(fileName) + 2 + strlen(length_string);
 }
 
 int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char * data, unsigned char * package){
 
+    printf("DATA PACKAGE CREATEING\n");
     package[0] = DATA;
     package[1] = seqNum % 256;
     package[2] = dataSize / 256;
@@ -55,8 +57,8 @@ int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char 
         perror("Failed loading file name\n");
         return -1;
     }
-
-    return 0;
+    printf("DATA SIZE %d", dataSize);
+    return 4 + dataSize;
 
 }
 
@@ -64,7 +66,7 @@ int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char 
 int readControlPackage(unsigned char * package, unsigned char * fileName, int* fileSize){
     int fileNameSize;
     unsigned char * fileSize_string = (char*)malloc(sizeof(int));  //ver melhor
-    int index = 3;
+    int index = 3; int lengthSize;
     if (package[1] == FILENAME ){
         fileNameSize = package[2];
 
@@ -75,20 +77,22 @@ int readControlPackage(unsigned char * package, unsigned char * fileName, int* f
         }
     }
     }
+    printf("%s\n", fileName);
     index += fileNameSize;
     if (package[index++] == FILESIZE ){
-        int lenthSize = package[index++];
-        for (int i = index; i<fileNameSize;i++){
-            if (memcpy(fileSize, &package[i], lenthSize) == NULL){
+        lengthSize = package[index++];
+        for (int i = index; i< index +lengthSize;i++){
+            if (memcpy(fileSize, &package[i], lengthSize) == NULL){
                 perror("Not possible to parse nameFile \n");
                 return -1;
             }
         }
         sscanf(fileSize_string, "%d", fileSize);   
     }
-    PRINT_SUC("Read control package."); 
+    perror("Read control package."); 
     free(fileSize_string);
-    return 0; 
+    
+    return index +lengthSize; 
 
 
 }

@@ -14,6 +14,7 @@
 
 #include "alarme.h"
 
+
 int writeFrame(int fd, unsigned char A, unsigned char C);
 
 int llopen(char *port, unsigned char flag);

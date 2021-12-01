@@ -11,6 +11,8 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     unsigned char frame[FRAME_SIZE];
     int res;
 
+    printf("lenfthg %d\n", lenght);
+
     if(lenght > MAX_DATA_SIZE){
         printf("Error: Data size to big to send\n");
         return -1;
@@ -63,7 +65,7 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     frame[i++] = FLAG;
    
 
-    //res = write(fd, frame, i); 
+    res = write(fd, frame, i); 
     sleep(1);
   
     
@@ -83,9 +85,7 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
 
     res = write(fd,frame,5);
     printf("enciar coneas\n");
-    for (int i= 0 ; i<5; i++){
-        printf("enviei %x\n", frame[i]);
-    }
+    
 
     if (res<0){
         perror("Error writing\n");  //manda set
@@ -101,15 +101,7 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
   
 }
 
-int writeREJ(int fd)
-{
 
-}
-
-int writeRR(int fd)
-{
-
-}
 
 int receiveIFrame(int fd, unsigned char *buffer)
 {
@@ -142,18 +134,18 @@ int receiveIFrame(int fd, unsigned char *buffer)
             case 0: 
                 if (frame[index]==FLAG){
                     status=1;
-                    printf("estado 1\n");
+                    printf(" I estado 1\n");
                 }
             break;
             case 1:
                 if (frame[index] == A_E){
                     status = 2;
-                    printf("estado 2\n");
+                    printf("I estado 2\n");
 
                 }
                 else if (frame[index] !=FLAG){
                     status = 0;
-                    printf("help nao sei ler %x\n", frame[1]);
+                    printf("I help nao sei ler %x\n", frame[1]);
 
                 }
             break;
@@ -161,7 +153,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
             case 2:
                 if (frame[index] == C_I(expectedNS)){
                     status = 3;
-                    printf("estado 3\n");
+                    printf("I estado 3\n");
                 }
                 else if (frame[index] == C_I(1) || frame[2] == C_I(0)){
                     return RR_REPEAT; //Tramas I duplicadas
@@ -179,7 +171,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
                     bcc1 = frame[index];
                     res = receiveIData(fd,bcc1, buffer);
                     
-                    return res;
+                    return 0;
 
                 }
                 else if (frame[index] == FLAG)
@@ -212,6 +204,7 @@ int receiveIData(int fd, unsigned char  *bcc1, unsigned char  *buffer){
 
         if(frame == FLAG)
         {
+            printf("dei toto o destuffing\n");
             break;
         }
         //Byte destuffing
@@ -245,6 +238,8 @@ int receiveIData(int fd, unsigned char  *bcc1, unsigned char  *buffer){
     if(currentXOR != buffer[bufferSize - 1]){
         return REJ; //Trama I com erros
     }
+
+    printf("vou sair do destuffing\n");
 
     return bufferSize + 1;
 }
@@ -595,7 +590,7 @@ int llwrite(int fd, char * buffer, int length)
         numberWrittenChars = writeIFrame(fd, buffer, length);
         activateAlarm(); 
 
-        r = recieveRFrame();
+        r = receiveRFrame( fd);
         
     
          if(r == RR || RR_REPEAT)
@@ -626,6 +621,8 @@ int llread(int fd, unsigned char * buffer)
     while(1)
     {
         int r = receiveIFrame(fd, buffer);
+        printf("recebi e processei a i frame o que é que vou enviar? %d\n", r);
+        
 
         if(r == REJ)
         {
@@ -633,11 +630,14 @@ int llread(int fd, unsigned char * buffer)
         }
         else if(r == RR_REPEAT){
             writeFrame(fd, A_E, C_RR(NR));
+            printf("sair \n");
+
         }
         else if (r == RR)
         {
             writeFrame(fd, A_E, C_RR(NR));
             updateRecieverN();
+            printf("sair \n");
             return r;
         }
         

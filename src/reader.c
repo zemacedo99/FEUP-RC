@@ -14,16 +14,22 @@ void reader(char *port)
   
   fd = llopen(port, RECEIVER );
 
+  printf("AQUI LOGO DEPOIS DO LLOPEN\n");
+
 
   //recieve control package
 
   while (TRUE){
     res = llread(fd, package);
+    printf("sai do ll read\n");
     if (package[0]==START){
-      if (readControlPackage(package, fileName, &fileSize)==0)
+      if (readControlPackage(package, fileName, &fileSize)>0)
           break;
     }
   }
+
+  printf("LI CONTROL PACKAGE FIXE\n");
+
   if( (fp = fopen(fileName, "wb")) == NULL ) {
         perror("Failed creating file\n");
         exit(-1);
@@ -38,8 +44,10 @@ void reader(char *port)
       if (package[0]== DATA){
         if (res = readDataPackage(package, &seq, data)<0){
           exit (-1);
-        };//POR FAZER
+        };
         fwrite(data, 1, length, fp); 
+        printf("AQUI LOGO DEPOIS DO READ PACKAGE %d\n", seq);
+
 
       }
 
@@ -47,7 +55,7 @@ void reader(char *port)
         char * endFileName = (char*)malloc(sizeof(char)*MAX_DATA_SIZE);
         int endSize;
 
-        if (readControlPackage(package, endFileName, &endSize)==0){
+        if (readControlPackage(package, endFileName, &endSize)>0){
             if (strcmp(endFileName, fileName) != 0){
                 perror("Incompatible information recieved\n");
                 exit (-1);

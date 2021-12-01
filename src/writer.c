@@ -8,7 +8,7 @@ void writer(char *port, char * fileName)
   unsigned char fileData[MAX_DATA_SIZE];
   FILE *fp;
   unsigned int seq = 0;
-  unsigned int informationMaxSize = MAX_DATA_SIZE;
+  unsigned int informationMaxSize = MAX_DATA_SIZE - 8;
   unsigned int actualSize = 0;
   unsigned int fileDataSize = 0;
 
@@ -22,15 +22,13 @@ void writer(char *port, char * fileName)
 
 
   int size = createControlPackage(START, fileName, fileSize, package); 
-  printf("criei control:)\n");
-  for (int i = 3; i<3 + strlen(fileName); i++){
-        printf("PACKAGE %c\n", package[i]);
-    }
-  llwrite(fd, package, &size);  //send control package 
+  printf("criei control:) %d\n", size);
+ 
+  llwrite(fd, package, size);  //send control package 
 
   //while true criar packages com numero da sequencia * contentSize e faz-se fread manda-se isso e retorna-se 
 
-  while (0){
+  while (1){
       if (seq * informationMaxSize > fileSize){
         actualSize = (seq * informationMaxSize) % fileSize;
       }
@@ -40,11 +38,12 @@ void writer(char *port, char * fileName)
       if (( fileDataSize = fread(fileData, 1, actualSize, fp)) <0){
         break;
       }
-      if (createDataPackage(seq, fileDataSize, fileData, package) < 0){
+      if ((size = createDataPackage(seq, fileDataSize, fileData, package) )< 0){
         perror("Failed creating data Package\n");
         return -1;
       }
-      if (llwrite(fd, package, &size) == -1){
+      printf("SIZEEE %d\n", size);
+      if (llwrite(fd, package, size) == -1){
         return (-1);
       }
 
@@ -54,7 +53,7 @@ void writer(char *port, char * fileName)
 
     
   size = createControlPackage(END, fileName, fileSize, package); 
-  llwrite(fd, package, &size);
+  llwrite(fd, package, size);
 
 
 
