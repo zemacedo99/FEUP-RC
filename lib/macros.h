@@ -15,7 +15,7 @@
 #define C_DISC 0x0B
 #define C_I(x) (unsigned char )(x << 6)
 
-#define FRAME_SIZE 256  // Maximum size of frame of data information
+#define FRAME_SIZE 1024  // Maximum size of frame of data information
 #define MAX_PACKAGE_SIZE (FRAME_SIZE - 6) / 2 // Maximum size of data that can be send
 #define MAX_DATA MAX_PACKAGE_SIZE-6
 

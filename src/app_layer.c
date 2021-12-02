@@ -23,7 +23,7 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
 
 
     package[position] = FILESIZE;
-    package[position +1 ] =  strlen(length_string) +1 ;
+    package[position +1 ] =  strlen(length_string) ;
 
     if (memcpy(&package[position + 2] , length_string, strlen(length_string))==NULL){
         perror("Failed loading file name\n");
@@ -43,10 +43,10 @@ int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char 
     printf("DATA PACKAGE CREATEING\n");
     package[0] = DATA;
     package[1] = seqNum % 256;
-    package[2] = dataSize / 256;
-    package[3] = dataSize % 256;
+    package[2] = dataSize  / 256;
+    package[3] = dataSize  % 256;
 
-    if (memcpy(&package[4] , data, dataSize)==NULL){
+    if (memcpy(&package[4] , data, dataSize) ==NULL){
         perror("Failed loading file name\n");
         return -1;
     }
@@ -71,7 +71,7 @@ int readControlPackage(unsigned char * package, unsigned char * fileName, int* f
             return -1;
         }
 
-        for (int i= 0; i< fileNameSize; i++){
+        for (int i= 0; i< fileNameSize +1; i++){
             printf("recebi file %c\n", fileName[i]);
         }
     
@@ -81,6 +81,7 @@ int readControlPackage(unsigned char * package, unsigned char * fileName, int* f
     printf("readed file name: %s\n", fileName);
     index += fileNameSize -1;
     if (package[index++] == FILESIZE ){
+
         printf("OKAY ENTREI\n");
         lengthSize = package[index++];
         printf("string length size %d\n", lengthSize);
@@ -92,8 +93,9 @@ int readControlPackage(unsigned char * package, unsigned char * fileName, int* f
         printf("string %s\n", fileSize_string);
 
     
-        fileSize = atoi(fileSize_string);   
-        printf("tamanho %d\n", fileSize);
+        *fileSize = atoi(fileSize_string); 
+
+        printf("tamanho %d\n", *fileSize);
     }
     
     return index +lengthSize; 
@@ -104,7 +106,9 @@ int readControlPackage(unsigned char * package, unsigned char * fileName, int* f
 int readDataPackage(unsigned char* package, int* seq,unsigned char * data){
 
     *seq = package[1];
-    int size = package[2]* 256 + package[3]%256;
+    int size = package[2]* 256 + package[3] ;
+
+    printf("read package size %d\n", size);
 
     if (memcpy(data, &package[4], size) == NULL){
         perror("Error parsing info."); 

@@ -8,7 +8,8 @@ void writer(char *port, char * fileName)
   unsigned char fileData[MAX_DATA];
   FILE *fp;
   unsigned int seq = 0;
-  unsigned int informationMaxSize = MAX_DATA - 8;
+  unsigned int informationMaxSize = MAX_DATA;
+  printf("information size is    %d\n", informationMaxSize);
   unsigned int actualSize = 0;
   unsigned int fileDataSize = 0;
 
@@ -43,6 +44,9 @@ void writer(char *port, char * fileName)
       if (( fileDataSize = fread(fileData, 1, actualSize, fp)) == 0){
         break;
       }
+      for (int i = 0;i< fileDataSize; i++){
+        printf( " %d estou a enviar %x    ", seq, fileData[i]);
+      }
       printf("SIZEEE %d\n", fileDataSize);
 
       if ((size = createDataPackage(seq, fileDataSize, fileData, package) )< 0){
@@ -50,9 +54,7 @@ void writer(char *port, char * fileName)
         return -1;
       }
       printf("SIZEEE %d\n", size);
-      for (int i = 0;i< size; i++){
-        printf( " %d estou a enviar %x    ", seq, package[i]);
-      }
+      
       if (llwrite(fd, package, size) == -1){
         return (-1);
       }

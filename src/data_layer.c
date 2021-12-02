@@ -12,6 +12,8 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     int res;
 
     printf("lenght da data%d\n", lenght);
+    printf("lenght da data%d\n", MAX_PACKAGE_SIZE);
+
 
     if(lenght > MAX_PACKAGE_SIZE){
         printf("Error: Data size to big to send\n");
@@ -494,8 +496,8 @@ void activateAlarm(){
 
 (void)signal(SIGALRM,&sig_handler);
     printf("ACTIVATE ALARM\n");
-alarmActive = FALSE;
-alarm(TIMEOUT);
+    alarmActive = FALSE;
+    alarm(3);
 
 }
 
@@ -579,6 +581,7 @@ int llclose(int fd, unsigned char flag ){
 
 int llwrite(int fd, char * buffer, int length)
 {
+    printf("here\n");
     count = 0;
     int numberWrittenChars, r;
     
@@ -589,14 +592,9 @@ int llwrite(int fd, char * buffer, int length)
         printf("ALARME NUMERO %d\n", count); 
 
         r = receiveRFrame( fd);
+        printf("%d\n", r);
 
-        if(r==TIMEOUT){
-            printf("ALARME NUMERO  TIMEOUT %d\n", count); 
-
-        }
-        
-    
-         if(r == RR || RR_REPEAT)
+        if(r == RR || r == RR_REPEAT)
         {
             desactivateAlarm();
             printf("Answer RR recieved");
@@ -609,11 +607,10 @@ int llwrite(int fd, char * buffer, int length)
         }
         
     }
-    if( count> 4){
+    if( count == 4){
         perror("TIMEOUT\n");
         return -1;
     }
-    printf("sai\n");
     updateSenderN();
 
     return numberWrittenChars;

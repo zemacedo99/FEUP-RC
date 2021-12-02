@@ -12,6 +12,7 @@ void sig_handler(int signum){
    alarmActive = TRUE;
    printf("flag %d\n", alarmActive);
 	count++;
+   printf("ALARME # %d\n", count);
 
 }
 

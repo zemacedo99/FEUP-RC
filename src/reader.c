@@ -48,24 +48,28 @@ void reader(char *port)
       
 
       if (package[0]== DATA){
-        if (res = readDataPackage(package, &seq, data)<0){
+        if ((res = readDataPackage(package, &seq, data))<0){
           exit (-1);
         };
-        for (int i = 0;i< length; i++){
-        printf( " %d estou a receber %x   ", seq, package[i]);
+        printf("oi o tamanho do pacote no reader é %d\n", res);
+        for (int i = 0;i< res; i++){
+        printf( " %d estou a receber %x   ", seq, data[i]);
         }
-        
-        fwrite(data, 1, length, fp); 
+  
+        fwrite(data, 1, res, fp); 
         printf("AQUI LOGO DEPOIS DO READ PACKAGE %d\n", seq);
 
 
       }
 
       else if (package[0] == END){
-        char endFileName[FILENAME_MAXSIZE];
+        char endFileName[256];
         int endSize;
 
-        if (readControlPackage(package, &endFileName, &endSize, length)>0){
+        if (readControlPackage(package, endFileName, &endSize, length)>0){
+              printf("name %s  %s\n", fileName, endFileName);
+              printf("size %d  %d\n", fileSize, endSize);
+
             if (strcmp(endFileName, fileName) != 0){
                 perror("Incompatible information recieved\n");
                 exit (-1);
