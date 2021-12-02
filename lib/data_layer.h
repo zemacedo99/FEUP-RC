@@ -23,6 +23,7 @@ int recieveSFrame(int fd, unsigned char A, unsigned char C);
 int llclose(int fd, unsigned char flag);
 void activateAlarm();
 void desactivateAlarm();
+int receiveIData(int fd, unsigned char  bcc1, unsigned char  *buffer);
 
 
 #endif

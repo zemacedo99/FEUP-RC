@@ -11,9 +11,9 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     unsigned char frame[FRAME_SIZE];
     int res;
 
-    printf("lenfthg %d\n", lenght);
+    printf("lenght da data%d\n", lenght);
 
-    if(lenght > MAX_DATA_SIZE){
+    if(lenght > MAX_PACKAGE_SIZE){
         printf("Error: Data size to big to send\n");
         return -1;
     }
@@ -43,8 +43,7 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
             frame[i] = msg[j];            
         }
         currentXOR = currentXOR ^ msg[j];
-        printf("xor %d : %x\n",i,currentXOR);
-        printf("teste %d : %x\n",i,frame[i]);
+
     }
 
     //BCC2
@@ -61,7 +60,6 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
         frame[i++] = currentXOR;            
     }  
 
-    printf("teste BCC2 %d : %x\n",i++,currentXOR);
     frame[i++] = FLAG;
    
 
@@ -84,7 +82,6 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
     frame[4] = FLAG;
 
     res = write(fd,frame,5);
-    printf("enciar coneas\n");
     
 
     if (res<0){
@@ -93,7 +90,6 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
 
     }
 
-    printf("%d bytes written alarme active  %d\n", res, alarmActive);
     sleep(1);
   
 
@@ -106,75 +102,72 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
 int receiveIFrame(int fd, unsigned char *buffer)
 {
 
-    unsigned char frame[1];
+    unsigned char frame;
     unsigned char bcc1;
     int status = 0;
     int res;
 
-    int index = 0;
     while (status != 4){
 
         if (alarmActive) {
-            printf("aqui");
+            printf("alarm is active \n");
             break;
         }
 
 
 
-        res = read(fd,&frame[index],1);
+        res = read(fd,&frame,1);
         if (res==0){
             continue;
         }
 
-        printf("recebi %d byte %x \n",res, frame[index]); 
-
+        printf("recebi %d byte %x \n",res, frame); 
 
 
         switch (status){
             case 0: 
-                if (frame[index]==FLAG){
+                if (frame==FLAG){
                     status=1;
-                    printf(" I estado 1\n");
                 }
             break;
             case 1:
-                if (frame[index] == A_E){
+                if (frame == A_E){
                     status = 2;
-                    printf("I estado 2\n");
+                    //printf("receiveIFrame: status 2\n");
 
                 }
-                else if (frame[index] !=FLAG){
+                else if (frame !=FLAG){
                     status = 0;
-                    printf("I help nao sei ler %x\n", frame[1]);
+                    //printf("receiveIFrame: help nao sei ler %x\n", frame);
 
                 }
             break;
 
             case 2:
-                if (frame[index] == C_I(expectedNS)){
+                if (frame == C_I(expectedNS)){
                     status = 3;
-                    printf("I estado 3\n");
+                    //printf("receiveIFrame: status 3\n");
                 }
-                else if (frame[index] == C_I(1) || frame[2] == C_I(0)){
-                    return RR_REPEAT; //Tramas I duplicadas
+                else if (frame == C_I(1) || frame== C_I(0)){
+                    return -2; //Tramas I duplicadas
                 }
-                else if (frame[index] == FLAG)
+                else if (frame == FLAG)
                     status = 1;
                 else 
                     status=0;
             break;
 
             case 3:
-                if (frame[index] == C_I(expectedNS) ^ A_E){
+                if (frame == C_I(expectedNS) ^ A_E){
                     status = 4;
-                    printf("estado 4\n"); 
-                    bcc1 = frame[index];
-                    res = receiveIData(fd,bcc1, buffer);
+                    //printf("receiveIFrame: status 4\n"); 
+                    bcc1 = frame;
+                    res = receiveIData(fd, bcc1, buffer);
                     
-                    return 0;
+                    return res;
 
                 }
-                else if (frame[index] == FLAG)
+                else if (frame == FLAG)
                     status = 1;
                 else 
                     status=0;
@@ -183,16 +176,16 @@ int receiveIFrame(int fd, unsigned char *buffer)
         }
     }
 
-    return RR;  // Trama I sem erros
+    return REJ;  // Trama I sem erros
 }
 
-int receiveIData(int fd, unsigned char  *bcc1, unsigned char  *buffer){
+int receiveIData(int fd, unsigned char  bcc1, unsigned char  *buffer){
 
     int bufferSize = 0;
     int res;
     unsigned char frame = 0;
 
-    char currentXOR = bcc1;
+    unsigned char currentXOR = bcc1;
 
     
     while(1){
@@ -204,7 +197,7 @@ int receiveIData(int fd, unsigned char  *bcc1, unsigned char  *buffer){
 
         if(frame == FLAG)
         {
-            printf("dei toto o destuffing\n");
+            //printf("destuffing done\n");
             break;
         }
         //Byte destuffing
@@ -218,30 +211,33 @@ int receiveIData(int fd, unsigned char  *bcc1, unsigned char  *buffer){
 
             if(frame == FLAG_ESC){
                 buffer[bufferSize++] = FLAG;
-                currentXOR = currentXOR ^ FLAG;
             }else if(frame == ESC_ESC){
                 buffer[bufferSize++] = ESC;
-                currentXOR = currentXOR ^ ESC;
             }
 
         }else{
             
             buffer[bufferSize++] = frame;
-            currentXOR = currentXOR ^ frame;
-
         }        
         
     }
 
-    buffer[bufferSize] = frame; // store the flag
 
-    if(currentXOR != buffer[bufferSize - 1]){
-        return REJ; //Trama I com erros
+    for (int i = 0; i <= bufferSize -2;i++){
+
+        currentXOR = currentXOR ^ buffer[i];
     }
 
-    printf("vou sair do destuffing\n");
 
-    return bufferSize + 1;
+
+    if(currentXOR != buffer[bufferSize - 1]){
+        printf("bcc2 errado");
+        return -1; //Trama I com erros
+    }
+
+    //printf("vou sair do destuffing\n");
+
+    return bufferSize - 1;
 }
 
 int receiveRFrame(int fd)
@@ -264,25 +260,25 @@ int receiveRFrame(int fd)
         if ((res = read(fd,&frame,1))==0)   
             continue;
 
-        printf("recebi %d byte %x \n",res, frame); 
+        //printf("recebi %d byte %x \n",res, frame); 
 
 
         switch (status){
             case 0: 
                 if (frame==FLAG){
                     status=1;
-                    printf("estado 1\n");
+                    //printf("receiveRFrame: status 1\n");
             }
             break;
             case 1:
                 if (frame == A_E){
                     status = 2;
-                    printf("estado 2\n");
+                    //printf("receiveRFrame: status 2\n");
 
                 }
                 else if (frame !=FLAG){
                     status = 0;
-                    printf("help nao sei ler %x\n", frame);
+                    //printf("help nao sei ler %x\n", frame);
                 }
             break;
 
@@ -291,7 +287,7 @@ int receiveRFrame(int fd)
                     C = frame;
                     status = 3;
                     answerType = RR;
-                    printf("estado 3\n");
+                    printf("receiveRFrame: status 3\n");
                 }
                 else if (frame == C_RR(0) || frame == C_RR(1) ){
                     C = frame;
@@ -316,7 +312,7 @@ int receiveRFrame(int fd)
             case 3:
                 if (frame == C ^ A_E){
                     status = 4;
-                    printf("estadp 4\n");
+                    //printf("receiveRFrame: status 4\n");
 
                 }
                 else if (frame== FLAG)
@@ -326,7 +322,7 @@ int receiveRFrame(int fd)
             break;
             case 4:
                 if (frame == FLAG){
-                  printf("status 5\n");
+                  //printf("receiveRFrame: status 5\n");
                   status = 5;
                 }
                 else 
@@ -336,6 +332,7 @@ int receiveRFrame(int fd)
         }
         
 
+    printf("returning here r %d\n", answerType);
     return answerType;
 
 
@@ -358,32 +355,32 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
         if ((res = read(fd,&frame,1))==0)   
             continue;
 
-        printf("recebi %d byte %x \n",res, frame); 
+        //printf("recebi %d byte %x \n",res, frame); 
 
 
         switch (status){
             case 0: 
                 if (frame==FLAG){
                     status=1;
-                    printf("estado 1\n");
+                    //printf("receiveSFrame: status 1\n");
             }
             break;
             case 1:
                 if (frame == A){
                     status = 2;
-                    printf("estado 2\n");
+                    //printf("receiveSFrame: status 2\n");
 
                 }
                 else if (frame !=FLAG){
                     status = 0;
-                    printf("help nao sei ler %x\n", frame);
+                    //printf("help nao sei ler %x\n", frame);
                 }
             break;
 
             case 2:
                 if (frame == C){
                     status = 3;
-                    printf("estado 3\n");
+                    //printf("receiveSFrame: status 3\n");
                 }
                 else if (frame == FLAG)
                     status = 1;
@@ -394,7 +391,7 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
             case 3:
                 if (frame == C ^ A){
                     status = 4;
-                    printf("estadp 4\n");
+                    //printf("estreceiveSFrame: statusadp 4\n");
 
                 }
                 else if (frame== FLAG)
@@ -404,7 +401,7 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
             break;
             case 4:
                 if (frame == FLAG){
-                  printf("status 5\n");
+                  //printf("receiveSFrame: status 5\n");
                   status = 5;
                 }
                 else 
@@ -447,7 +444,7 @@ int llopen(char *port, unsigned char flag){
     else if (flag == RECEIVER){
         fd = openPort(port);
         recieveSFrame(fd ,A_E ,C_SET);
-        printf("recebi a frame \n");
+        printf("recebi a Trama de Supervisão \n");
         writeFrame(fd, A_E, C_UA);
     }
 
@@ -493,14 +490,14 @@ int openPort(char *port){
 
 }
  
- void activateAlarm(){
+void activateAlarm(){
 
-    (void)signal(SIGALRM,&sig_handler);
-     printf("ACTIVATE ALARM\n");
-    alarmActive = FALSE;
-    alarm(TIMEOUT);
+(void)signal(SIGALRM,&sig_handler);
+    printf("ACTIVATE ALARM\n");
+alarmActive = FALSE;
+alarm(TIMEOUT);
 
- }
+}
 
 void desactivateAlarm(){
     printf("DESACTIVATE ALARM\n");
@@ -520,7 +517,7 @@ int llclose(int fd, unsigned char flag ){
             printf("Enviei o DISC\n");
             activateAlarm();
             if ((notrecieved = recieveSFrame(fd, A_R, C_DISC))==0){
-                printf("recebi o disc\n");
+                printf("recebi o DISC\n");
                 desactivateAlarm();
                 break;
             }
@@ -588,9 +585,15 @@ int llwrite(int fd, char * buffer, int length)
     while(count<4)
     {
         numberWrittenChars = writeIFrame(fd, buffer, length);
-        activateAlarm(); 
+        activateAlarm();
+        printf("ALARME NUMERO %d\n", count); 
 
         r = receiveRFrame( fd);
+
+        if(r==TIMEOUT){
+            printf("ALARME NUMERO  TIMEOUT %d\n", count); 
+
+        }
         
     
          if(r == RR || RR_REPEAT)
@@ -610,7 +613,7 @@ int llwrite(int fd, char * buffer, int length)
         perror("TIMEOUT\n");
         return -1;
     }
-    
+    printf("sai\n");
     updateSenderN();
 
     return numberWrittenChars;
@@ -624,16 +627,16 @@ int llread(int fd, unsigned char * buffer)
         printf("recebi e processei a i frame o que é que vou enviar? %d\n", r);
         
 
-        if(r == REJ)
+        if(r == -1)
         {
             writeFrame(fd, A_E, C_REJ(NR));
         }
-        else if(r == RR_REPEAT){
+        else if(r == -2){
             writeFrame(fd, A_E, C_RR(NR));
             printf("sair \n");
 
         }
-        else if (r == RR)
+        else if (r >= 0)
         {
             writeFrame(fd, A_E, C_RR(NR));
             updateRecieverN();

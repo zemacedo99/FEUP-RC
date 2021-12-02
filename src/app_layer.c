@@ -3,10 +3,9 @@
 
 int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsigned char* package ){
     
-    
     package[0] = flag;
     package[1]= FILENAME;
-    package[2] = strlen(fileName); 
+    package[2] = strlen(fileName) +1 ; 
     printf("PACKAGE %d\n", package[2]);
 
 
@@ -14,30 +13,24 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
         perror("Failed loading file name\n");
         return -1;
     }
-    for (int i = 3; i< 3+  strlen(fileName); i++){
-        printf("PACKAGE %c\n", package[i]);
-    }
-
-
-    printf("Acabou\n");
-
+   
     int position = 3 + strlen(fileName);
 
     char * length_string = (char*)malloc(sizeof(int)); 
     sprintf(length_string, "%d", fileSize);  
 
-    printf("%d", fileSize ); 
-    printf("%d", strlen(length_string) ); 
+    printf("string %s,int %d \n", length_string); 
 
 
-    package[position +1 ] = FILESIZE;
-    package[position +2 ] =  strlen(length_string);
+    package[position] = FILESIZE;
+    package[position +1 ] =  strlen(length_string) +1 ;
 
-    if (memcpy(&package[position + 3] , length_string, strlen(length_string))==NULL){
+    if (memcpy(&package[position + 2] , length_string, strlen(length_string))==NULL){
         perror("Failed loading file name\n");
         return -1;
     }
-     for (int i = position +3; i< 3+  strlen(length_string); i++){
+
+    for (int i = position +2; i< position +2+  strlen(length_string); i++){
         printf("PACKAGE %c\n", package[i]);
     }
 
@@ -57,50 +50,60 @@ int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char 
         perror("Failed loading file name\n");
         return -1;
     }
+
     printf("DATA SIZE %d", dataSize);
     return 4 + dataSize;
 
 }
 
 
-int readControlPackage(unsigned char * package, unsigned char * fileName, int* fileSize){
+int readControlPackage(unsigned char * package, unsigned char * fileName, int* fileSize, int size){
     int fileNameSize;
-    unsigned char * fileSize_string = (char*)malloc(sizeof(int));  //ver melhor
+    unsigned char fileSize_string[256];  //ver melhor
     int index = 3; int lengthSize;
+    fileName[0] = 'c';
     if (package[1] == FILENAME ){
         fileNameSize = package[2];
 
-        for (int i = index; i<fileNameSize;i++){
-            if (memcpy(fileName, &package[i], fileNameSize) == NULL){
-                perror("Not possible to parse nameFile \n");
-                return -1;
+
+        if (memcpy(&fileName[1], &package[3], fileNameSize) == NULL){
+            perror("Not possible to parse nameFile \n");
+            return -1;
         }
+
+        for (int i= 0; i< fileNameSize; i++){
+            printf("recebi file %c\n", fileName[i]);
+        }
+    
+    
     }
-    }
-    printf("%s\n", fileName);
-    index += fileNameSize;
+    printf("readed file name size : %d \n", fileNameSize);
+    printf("readed file name: %s\n", fileName);
+    index += fileNameSize -1;
     if (package[index++] == FILESIZE ){
+        printf("OKAY ENTREI\n");
         lengthSize = package[index++];
-        for (int i = index; i< index +lengthSize;i++){
-            if (memcpy(fileSize, &package[i], lengthSize) == NULL){
-                perror("Not possible to parse nameFile \n");
-                return -1;
-            }
+        printf("string length size %d\n", lengthSize);
+        if (memcpy(fileSize_string, &package[index], lengthSize) == NULL){
+            perror("Not possible to parse nameFile \n");
+            return -1;
         }
-        sscanf(fileSize_string, "%d", fileSize);   
+       
+        printf("string %s\n", fileSize_string);
+
+    
+        fileSize = atoi(fileSize_string);   
+        printf("tamanho %d\n", fileSize);
     }
-    perror("Read control package."); 
-    free(fileSize_string);
     
     return index +lengthSize; 
-
 
 }
 
 
 int readDataPackage(unsigned char* package, int* seq,unsigned char * data){
 
-    seq = package[1];
+    *seq = package[1];
     int size = package[2]* 256 + package[3]%256;
 
     if (memcpy(data, &package[4], size) == NULL){
