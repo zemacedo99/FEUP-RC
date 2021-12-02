@@ -59,7 +59,7 @@ int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char 
 }
 
 
-int readControlPackage(unsigned char * package,  char * fileName, int* fileSize, int size){
+int readControlPackage(unsigned char * package,  char * fileName, int* fileSize){
     int fileNameSize;
     char fileSize_string[256];  //ver melhor
     int index = 3; int lengthSize;

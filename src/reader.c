@@ -23,7 +23,7 @@ void reader(char *port)
     res = llread(fd, package);
     //printf("sai do ll read\n");
     if (package[0]==START){
-      if (readControlPackage(package, fileName, &fileSize, res)>0)
+      if (readControlPackage(package, fileName, &fileSize)>0)
           break;
     }
   }
@@ -69,7 +69,7 @@ void reader(char *port)
         char endFileName[256];
         int endSize;
 
-        if (readControlPackage(package, endFileName, &endSize, length)>0){
+        if (readControlPackage(package, endFileName, &endSize)>0){
               //printf("name %s  %s\n", fileName, endFileName);
               //printf("size %d  %d\n", fileSize, endSize);
 
