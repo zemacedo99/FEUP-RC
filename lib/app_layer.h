@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "macros.h"
 
@@ -11,7 +12,7 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
 
 int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char * data, unsigned char * package);
 
-int readControlPackage(unsigned char * package, unsigned char * fileName, int* fileSize, int size);
+int readControlPackage(unsigned char * package,  char * fileName, int* fileSize, int size);
 
 int readDataPackage(unsigned char* package, int* seq,unsigned char * data);
 

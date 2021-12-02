@@ -59,9 +59,9 @@ int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char 
 }
 
 
-int readControlPackage(unsigned char * package, unsigned char * fileName, int* fileSize, int size){
+int readControlPackage(unsigned char * package,  char * fileName, int* fileSize, int size){
     int fileNameSize;
-    unsigned char fileSize_string[256];  //ver melhor
+    char fileSize_string[256];  //ver melhor
     int index = 3; int lengthSize;
     fileName[0] = 'c';
     if (package[1] == FILENAME ){

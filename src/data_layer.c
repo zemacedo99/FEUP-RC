@@ -160,7 +160,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
             break;
 
             case 3:
-                if (frame == C_I(expectedNS) ^ A_E){
+                if (frame == (C_I(expectedNS) ^ A_E)){
                     status = 4;
                     //printf("receiveIFrame: status 4\n"); 
                     bcc1 = frame;
@@ -173,6 +173,8 @@ int receiveIFrame(int fd, unsigned char *buffer)
                     status = 1;
                 else 
                     status=0;
+            break;
+            default:
             break;
         
         }
@@ -251,11 +253,10 @@ int receiveRFrame(int fd)
       unsigned char C = 0;
       int answerType;
     
-      int index = 0;
       while (status != 5){
 
         if (alarmActive) {
-          return TIMEOUT;
+          return ANSWER_TIMEOUT;
         }
     
         
@@ -312,7 +313,7 @@ int receiveRFrame(int fd)
             break;
 
             case 3:
-                if (frame == C ^ A_E){
+                if (frame == (C ^ A_E)){
                     status = 4;
                     //printf("receiveRFrame: status 4\n");
 
@@ -330,6 +331,9 @@ int receiveRFrame(int fd)
                 else 
                     status=0;
             break;
+
+            default:
+            break;
             }
         }
         
@@ -346,11 +350,10 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
       int status = 0;
       int res;
 
-      int index = 0;
       while (status != 5){
 
         if (alarmActive) {
-          return TIMEOUT;
+          return ANSWER_TIMEOUT;
         }
     
         
@@ -391,7 +394,7 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
             break;
 
             case 3:
-                if (frame == C ^ A){
+                if (frame == (C ^ A)){
                     status = 4;
                     //printf("estreceiveSFrame: statusadp 4\n");
 
@@ -409,6 +412,11 @@ int recieveSFrame(int fd,unsigned char A, unsigned char C){
                 else 
                     status=0;
             break;
+
+            default:
+			    break;
+
+
             }
         }
 
@@ -579,7 +587,7 @@ int llclose(int fd, unsigned char flag ){
 }
 
 
-int llwrite(int fd, char * buffer, int length)
+int llwrite(int fd, unsigned char * buffer, int length)
 {
     //printf("here\n");
     count = 0;
@@ -659,3 +667,4 @@ void updateSenderN(){
     if (NS == 1) NS = 0;
     else NS = 1;
 }
+

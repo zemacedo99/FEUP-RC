@@ -13,6 +13,7 @@
 #include "handle_file.h"
 #include "app_layer.h"
 
+void writer(char *port, char * fileName);
 
 
 #endif

@@ -45,19 +45,19 @@ void writer(char *port, char * fileName)
       if (( fileDataSize = fread(fileData, 1, actualSize, fp)) == 0){
         break;
       }
-      for (int i = 0;i< fileDataSize; i++){
+      for (unsigned int i = 0;i< fileDataSize; i++){
         //printf( " %d estou a enviar %x    ", seq, fileData[i]);
       }
       //printf("SIZEEE %d\n", fileDataSize);
 
       if ((size = createDataPackage(seq, fileDataSize, fileData, package) )< 0){
         perror("Failed creating data Package\n");
-        return -1;
+        return;
       }
       //printf("SIZEEE %d\n", size);
       
       if (llwrite(fd, package, size) == -1){
-        return (-1);
+        return;
       }
 
       seq++;

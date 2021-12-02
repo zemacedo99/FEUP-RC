@@ -24,6 +24,10 @@ int llclose(int fd, unsigned char flag);
 void activateAlarm();
 void desactivateAlarm();
 int receiveIData(int fd, unsigned char  bcc1, unsigned char  *buffer);
+int llwrite(int fd, unsigned char * buffer, int length);
+int llread(int fd, unsigned char * buffer);
 
+void updateSenderN();
+void updateRecieverN();
 
 #endif

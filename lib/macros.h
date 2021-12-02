@@ -48,6 +48,6 @@
 
 //answer frames 
 #define RR 0
-#define TIMEOUT 1
+#define ANSWER_TIMEOUT 1
 #define REJ 2
 #define RR_REPEAT 3

@@ -12,6 +12,8 @@
 #include "data_layer.h"
 #include "app_layer.h"
 
+void reader(char *port);
+
 
 #endif
 

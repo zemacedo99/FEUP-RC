@@ -6,7 +6,7 @@ int alarmActive = FALSE, count=0, i = 0;
 
 
 
-void sig_handler(int signum){
+void sig_handler(){
    //printf("ALARME # %d\n", count);
    i++;
    alarmActive = TRUE;

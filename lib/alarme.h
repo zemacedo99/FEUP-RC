@@ -8,6 +8,6 @@
 #include "macros.h"
 
  
-void sig_handler(int signum);
+void sig_handler();
 
 #endif
