@@ -14,24 +14,24 @@ void reader(char *port)
   
   fd = llopen(port, RECEIVER );
 
-  printf("AQUI LOGO DEPOIS DO LLOPEN\n");
+  //printf("AQUI LOGO DEPOIS DO LLOPEN\n");
 
 
   //recieve control package
 
   while (TRUE){
     res = llread(fd, package);
-    printf("sai do ll read\n");
+    //printf("sai do ll read\n");
     if (package[0]==START){
       if (readControlPackage(package, fileName, &fileSize, res)>0)
           break;
     }
   }
 
-  printf("LI CONTROL PACKAGE FIXE\n");
-  printf( "file size %d\n", fileSize);
+  //printf("LI CONTROL PACKAGE FIXE\n");
+  //printf( "file size %d\n", fileSize);
 
-  printf("vou chamar o pinguim %s\n", fileName);
+  //printf("vou chamar o pinguim %s\n", fileName);
   
 
   if( (fp = fopen(fileName, "wb")) == NULL ) {
@@ -40,6 +40,7 @@ void reader(char *port)
     } 
     
 
+  printf("Receiving file...\n");
   while (TRUE){
       if ( (length = llread(fd,package)) < 0){
             perror("Could not read file descriptor.");
@@ -51,13 +52,15 @@ void reader(char *port)
         if ((res = readDataPackage(package, &seq, data))<0){
           exit (-1);
         };
-        printf("oi o tamanho do pacote no reader é %d\n", res);
+        //printf("oi o tamanho do pacote no reader é %d\n", res);
+        /*
         for (int i = 0;i< res; i++){
         printf( " %d estou a receber %x   ", seq, data[i]);
         }
+        */
   
         fwrite(data, 1, res, fp); 
-        printf("AQUI LOGO DEPOIS DO READ PACKAGE %d\n", seq);
+        //printf("AQUI LOGO DEPOIS DO READ PACKAGE %d\n", seq);
 
 
       }
@@ -67,8 +70,8 @@ void reader(char *port)
         int endSize;
 
         if (readControlPackage(package, endFileName, &endSize, length)>0){
-              printf("name %s  %s\n", fileName, endFileName);
-              printf("size %d  %d\n", fileSize, endSize);
+              //printf("name %s  %s\n", fileName, endFileName);
+              //printf("size %d  %d\n", fileSize, endSize);
 
             if (strcmp(endFileName, fileName) != 0){
                 perror("Incompatible information recieved\n");
@@ -86,6 +89,8 @@ void reader(char *port)
 
 
   llclose(fd, RECEIVER);
+
+  printf("File received\n");
   return ;
 }
 

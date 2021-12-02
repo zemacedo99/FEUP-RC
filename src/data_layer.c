@@ -11,8 +11,8 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     unsigned char frame[FRAME_SIZE];
     int res;
 
-    printf("lenght da data%d\n", lenght);
-    printf("lenght da data%d\n", MAX_PACKAGE_SIZE);
+    //printf("lenght da data%d\n", lenght);
+    //printf("lenght da data%d\n", MAX_PACKAGE_SIZE);
 
 
     if(lenght > MAX_PACKAGE_SIZE){
@@ -66,7 +66,7 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
    
 
     res = write(fd, frame, i); 
-    sleep(1);
+    //sleep(1);
   
     
 
@@ -92,7 +92,7 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
 
     }
 
-    sleep(1);
+    //sleep(1);
   
 
     return 0;
@@ -112,7 +112,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
     while (status != 4){
 
         if (alarmActive) {
-            printf("alarm is active \n");
+            //printf("alarm is active \n");
             break;
         }
 
@@ -123,7 +123,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
             continue;
         }
 
-        printf("recebi %d byte %x \n",res, frame); 
+        //printf("recebi %d byte %x \n",res, frame); 
 
 
         switch (status){
@@ -233,7 +233,7 @@ int receiveIData(int fd, unsigned char  bcc1, unsigned char  *buffer){
 
 
     if(currentXOR != buffer[bufferSize - 1]){
-        printf("bcc2 errado");
+        printf("Frame with error, bcc2 does not match");
         return -1; //Trama I com erros
     }
 
@@ -289,7 +289,7 @@ int receiveRFrame(int fd)
                     C = frame;
                     status = 3;
                     answerType = RR;
-                    printf("receiveRFrame: status 3\n");
+                    //printf("receiveRFrame: status 3\n");
                 }
                 else if (frame == C_RR(0) || frame == C_RR(1) ){
                     C = frame;
@@ -334,7 +334,7 @@ int receiveRFrame(int fd)
         }
         
 
-    printf("returning here r %d\n", answerType);
+    //printf("returning here r %d\n", answerType);
     return answerType;
 
 
@@ -446,7 +446,7 @@ int llopen(char *port, unsigned char flag){
     else if (flag == RECEIVER){
         fd = openPort(port);
         recieveSFrame(fd ,A_E ,C_SET);
-        printf("recebi a Trama de Supervisão \n");
+        //printf("recebi a Trama de Supervisão \n");
         writeFrame(fd, A_E, C_UA);
     }
 
@@ -495,14 +495,14 @@ int openPort(char *port){
 void activateAlarm(){
 
 (void)signal(SIGALRM,&sig_handler);
-    printf("ACTIVATE ALARM\n");
+    //printf("ACTIVATE ALARM\n");
     alarmActive = FALSE;
     alarm(3);
 
 }
 
 void desactivateAlarm(){
-    printf("DESACTIVATE ALARM\n");
+    //printf("DESACTIVATE ALARM\n");
     alarm(0);
     count = 0;
     alarmActive = FALSE;
@@ -514,12 +514,12 @@ int llclose(int fd, unsigned char flag ){
     
     if (flag ==TRANSMITTER){
         while (count<4 && notrecieved){
-            sleep(4);
+            //sleep(4);
             writeFrame(fd, A_E, C_DISC);
-            printf("Enviei o DISC\n");
+            //printf("Enviei o DISC\n");
             activateAlarm();
             if ((notrecieved = recieveSFrame(fd, A_R, C_DISC))==0){
-                printf("recebi o DISC\n");
+                //printf("recebi o DISC\n");
                 desactivateAlarm();
                 break;
             }
@@ -530,7 +530,7 @@ int llclose(int fd, unsigned char flag ){
         }
         else{
             writeFrame(fd, A_R, C_UA);
-            printf("enviei a resposta ao disc\n");
+            //printf("enviei a resposta ao disc\n");
         }
 
     }
@@ -539,7 +539,7 @@ int llclose(int fd, unsigned char flag ){
             activateAlarm();
             if ((notrecieved = recieveSFrame(fd, A_E, C_DISC))==0){
                 desactivateAlarm();
-                printf("recebi  disc RECETOR\n");
+                //printf("recebi  disc RECETOR\n");
                 break;
             }
         }
@@ -553,10 +553,10 @@ int llclose(int fd, unsigned char flag ){
             while (count<4 && notrecieved){
 
                 writeFrame(fd, A_R, C_DISC);
-                printf("escrevi o disc RECETOR\n");
+                //printf("escrevi o disc RECETOR\n");
                 activateAlarm();
                 if ((notrecieved = recieveSFrame(fd, A_R, C_UA))==0){
-                    printf("recebi resposta ao disc RECETOR\n");
+                    //printf("recebi resposta ao disc RECETOR\n");
                     desactivateAlarm();
                     break;
                 }
@@ -581,7 +581,7 @@ int llclose(int fd, unsigned char flag ){
 
 int llwrite(int fd, char * buffer, int length)
 {
-    printf("here\n");
+    //printf("here\n");
     count = 0;
     int numberWrittenChars, r;
     
@@ -589,20 +589,20 @@ int llwrite(int fd, char * buffer, int length)
     {
         numberWrittenChars = writeIFrame(fd, buffer, length);
         activateAlarm();
-        printf("ALARME NUMERO %d\n", count); 
+        //printf("ALARME NUMERO %d\n", count); 
 
         r = receiveRFrame( fd);
-        printf("%d\n", r);
+        //printf("%d\n", r);
 
         if(r == RR || r == RR_REPEAT)
         {
             desactivateAlarm();
-            printf("Answer RR recieved");
+            printf("Answer RR recieved\n");
             break;
         }
         else if (r == REJ){
             desactivateAlarm();
-            printf("Answer REJ recieved");
+            printf("Answer REJ recieved\n");
 
         }
         
@@ -621,7 +621,7 @@ int llread(int fd, unsigned char * buffer)
     while(1)
     {
         int r = receiveIFrame(fd, buffer);
-        printf("recebi e processei a i frame o que é que vou enviar? %d\n", r);
+        //printf("recebi e processei a i frame o que é que vou enviar? %d\n", r);
         
 
         if(r == -1)
@@ -630,14 +630,14 @@ int llread(int fd, unsigned char * buffer)
         }
         else if(r == -2){
             writeFrame(fd, A_E, C_RR(NR));
-            printf("sair \n");
+            //printf("sair \n");
 
         }
         else if (r >= 0)
         {
             writeFrame(fd, A_E, C_RR(NR));
             updateRecieverN();
-            printf("sair \n");
+            //printf("sair \n");
             return r;
         }
         
