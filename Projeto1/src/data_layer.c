@@ -1,4 +1,4 @@
- #include "../lib/data_layer.h"
+#include "../lib/data_layer.h"
 
 
 
@@ -566,7 +566,6 @@ int llclose(int fd, unsigned char flag ){
 
 int llwrite(int fd, unsigned char * buffer, int length)
 {
-    //printf("here\n");
     count = 0;
     int numberWrittenChars, r;
     
