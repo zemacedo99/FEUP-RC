@@ -12,7 +12,6 @@ int writeIFrame(int fd, unsigned char *msg,  int lenght){
     int res;
 
 
-
     if(lenght > MAX_PACKAGE_SIZE){
         printf("Error: Data size to big to send\n");
         return -1;
@@ -85,12 +84,10 @@ int writeFrame(int fd, unsigned char A, unsigned char C){
     
 
     if (res<0){
-        perror("Error writing\n");  //manda set
+        perror("Error writing\n"); 
         return -1;
 
     }
-
-
   
 
     return 0;
@@ -113,14 +110,12 @@ int receiveIFrame(int fd, unsigned char *buffer)
             break;
         }
 
-
-
         res = read(fd,&frame,1);
         if (res==0){
             continue;
         }
 
-
+ //status machine for frame I
 
         switch (status){
             case 0: 
@@ -173,7 +168,7 @@ int receiveIFrame(int fd, unsigned char *buffer)
         }
     }
 
-    return REJ;  // Trama I sem erros
+    return REJ;  
 }
 
 int receiveIData(int fd, unsigned char  bcc1, unsigned char  *buffer){
@@ -250,11 +245,9 @@ int receiveRFrame(int fd)
         if (alarmActive) {
           return ANSWER_TIMEOUT;
         }
-    
-        
+            
         if ((res = read(fd,&frame,1))==0)   
             continue;
-
 
 
         switch (status){
@@ -484,7 +477,7 @@ int openPort(char *port){
  
 void activateAlarm(){
 
-(void)signal(SIGALRM,&sig_handler);
+    (void)signal(SIGALRM,&sig_handler);
 
     alarmActive = FALSE;
     alarm(3);

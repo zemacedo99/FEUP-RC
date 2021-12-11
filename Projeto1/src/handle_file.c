@@ -8,10 +8,3 @@ unsigned long get_file_size(FILE* f) {
   return size;
 }
 
-
-//checar 
-unsigned char* read_file(FILE* f, unsigned long filesize) {
-  unsigned char* data = (unsigned char*) malloc (filesize);
-  fread(data, sizeof(unsigned char), filesize, f);
-  return data;
-}

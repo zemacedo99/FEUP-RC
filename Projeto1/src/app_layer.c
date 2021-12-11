@@ -8,7 +8,6 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
     package[2] = strlen(fileName) +1 ; 
 
 
-
     if (memcpy(&package[3] , fileName, package[2])==NULL){
         perror("Failed loading file name\n");
         return -1;
@@ -20,8 +19,6 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
     sprintf(length_string, "%d", fileSize);  
 
 
-
-
     package[position] = FILESIZE;
     package[position +1 ] =  strlen(length_string) ;
 
@@ -29,7 +26,6 @@ int createControlPackage(unsigned char flag, char* fileName, int fileSize, unsig
         perror("Failed loading file name\n");
         return -1;
     }
-
   
 
   
@@ -57,7 +53,7 @@ int createDataPackage(unsigned int seqNum, unsigned int dataSize, unsigned char 
 
 int readControlPackage(unsigned char * package,  char * fileName, int* fileSize){
     int fileNameSize;
-    char fileSize_string[256];  //ver melhor
+    char fileSize_string[256];  
     int index = 3; int lengthSize;
     fileName[0] = 'c';
     if (package[1] == FILENAME ){
@@ -68,8 +64,6 @@ int readControlPackage(unsigned char * package,  char * fileName, int* fileSize)
             perror("Not possible to parse nameFile \n");
             return -1;
         }
-
-        
     
     
     }
@@ -86,8 +80,6 @@ int readControlPackage(unsigned char * package,  char * fileName, int* fileSize)
             return -1;
         }
        
-
-
     
         *fileSize = atoi(fileSize_string); 
 
@@ -102,7 +94,6 @@ int readDataPackage(unsigned char* package, int* seq,unsigned char * data){
 
     *seq = package[1];
     int size = package[2]* 256 + package[3] ;
-
 
 
     if (memcpy(data, &package[4], size) == NULL){
