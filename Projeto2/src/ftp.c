@@ -1,4 +1,4 @@
-#include "ftp.h"
+#include "../lib/ftp.h"
 
 int file_transfer(ftp_url args){
 

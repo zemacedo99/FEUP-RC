@@ -1,4 +1,4 @@
-#include "parser.h"
+#include "../lib/parser.h"
 
 int parse_url(const char* url, ftp_url* args){
 
@@ -27,6 +27,7 @@ int parse_url(const char* url, ftp_url* args){
     // save the path in the struct
     strcpy(args->path, path);
 
+    args->host = "ftp.up.pt";
     // TODO: parse the user, password and host
 
     return 0;
