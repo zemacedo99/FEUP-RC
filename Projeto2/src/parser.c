@@ -24,8 +24,12 @@ int parse_url(const char* url, ftp_url* args){
         printf("URL wrong format \n");
         return -1;
     }
+
+    printf(path);
     // save the path in the struct
+    /*
     strcpy(args->path, path);
+    */
 
     args->host = "ftp.up.pt";
     // TODO: parse the user, password and host

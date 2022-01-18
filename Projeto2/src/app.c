@@ -2,12 +2,15 @@
 
 int main(int argc, char** argv)
 {
+
+    
     if (argc != 2 && strcmp(argv[0], "download") != 0)
     {
         printf("Usage: download ftp://[<user>:<password>@]<host>/<url-path>\n");
         return -1;
     }
 
+    
     ftp_url args;
 
     // parse url
@@ -17,6 +20,8 @@ int main(int argc, char** argv)
         printf("Usage: download ftp://[<user>:<password>@]<host>/<url-path>\n");
         return -1;
     }
+        
+    /*
 
     // file transfer 
     if(file_transfer(args) != 0)
@@ -24,6 +29,7 @@ int main(int argc, char** argv)
         printf("Error transfering the file\n");
         return -1;
     }
+    */
 
     printf("Successful file transfer\n");
 
