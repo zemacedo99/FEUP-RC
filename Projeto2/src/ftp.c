@@ -10,6 +10,7 @@ int file_transfer(ftp_url args){
         printf("Error in establishing TCP connection\n");
         return -1;
     }
+
     printf("TCP connection established!\n");
 
 
@@ -36,10 +37,19 @@ int file_transfer(ftp_url args){
         return -1;
     }
     
-
     printf("\nSuccessful authentication\n");
 
-    // TODO: Entering Passive Mode
+    // entering passive mode
+
+    int pasv_socketfd = enter_pasv_mode(socketfd);
+    if(pasv_socketfd < 0)
+    {
+        printf("Passive Mode error\n");
+        close(socketfd);
+        return -1;
+    }
+
+    printf("\nSuccessful Passive Mode\n");
 
     // TODO: retrieve the file (Download)
 
@@ -118,6 +128,8 @@ int send_command(int sockfd, char* command){
         perror("write");
         return -1;
     }
+
+    printf("\nString send to the server:\n%s\n", command);
     
     return 0;
 }
@@ -225,4 +237,93 @@ int authenticate_user(int socketfd ,char* user, char* pass){
     }
 
     return 0;
+}
+
+int enter_pasv_mode(int socketfd){
+
+    ftp_server_response pasv_response;
+
+    // send pasv command to enter passive mode
+    if(send_command(socketfd, "pasv \n")) 
+    {
+        return -1;
+    }
+
+    if(receive_server_response(socketfd, &pasv_response)) 
+    {
+        return -1;
+    }
+
+    // printf("pasv response code: %d\n", pasv_response.code);
+    // printf("pasv response description: %s\n", pasv_response.description);
+
+    int num_tries = 0;
+    
+    // Tries to receive "Entering Passive Mode (h1,h2,h3,h4,p1,p2)." response MAX_TRIES
+    while(pasv_response.code != ENTER_PASV_MODE && num_tries < MAX_TRIES)
+    {
+        printf("\nUnexpected response from server. Trying again in 1 sec...\n");
+        sleep(1);
+
+        if(send_command(socketfd, "pasv \n")) 
+        {
+            return -1;
+        }
+
+        if(receive_server_response(socketfd, &pasv_response)) 
+        {
+            return -1;
+        }
+
+        num_tries++;
+    }
+
+    if(num_tries == MAX_TRIES)
+    {                                   
+        printf("\nMaximum tries exceded. Exiting...\n");
+        return -1;
+    }
+
+
+    strtok(pasv_response.description, "(");
+
+    char *six_bytes = strtok(NULL, ")");
+
+    IPv4_address server_ip; 
+
+    int p1, p2;
+    char ip[30];
+
+
+    // parse the string into the IP and ports
+
+    sscanf(six_bytes,
+            "%d,%d,%d,%d,%d,%d",
+            &server_ip.h1,
+            &server_ip.h2,
+            &server_ip.h3,
+            &server_ip.h4,
+            &p1,
+            &p2);
+    
+    sprintf(ip,
+            "%d.%d.%d.%d",
+            server_ip.h1,
+            server_ip.h2,
+            server_ip.h3,
+            server_ip.h4);
+
+    // calculate the port on the server that is waiting for a connection
+    int port = p1 * 256 + p2;    
+
+
+    int pasv_socketfd;
+    if((pasv_socketfd = connection_TCP(ip, port)) < 0){
+        printf("Error in establishing TCP connection with server to transfer data in passive mode\n");
+        return -1;
+    }
+
+    printf("TCP connection established with server to transfer data in passive mode\n");
+
+    return pasv_socketfd;
 }

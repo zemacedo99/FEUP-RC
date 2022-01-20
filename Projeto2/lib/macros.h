@@ -15,6 +15,8 @@
 #define READY_FOR_NEW_USER 220 
 #define USER_LOGIN_OK 230
 #define NEED_PASSWORD 331
+#define ENTER_PASV_MODE 227
+
 
 #define MAX_TRIES 3
 
@@ -34,6 +36,15 @@ typedef struct
     int code;
     char description[DESC_LEN];
 } ftp_server_response;
+
+typedef struct 
+{
+    int h1;
+    int h2;
+    int h3;
+    int h4;
+} IPv4_address;
+
 
 
 #endif

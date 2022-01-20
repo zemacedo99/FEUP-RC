@@ -101,7 +101,7 @@ int parse_server_response(const char* response_string, ftp_server_response* resp
     strcpy(response_string_cpy, response_string);
 
     // response code
-    char* code = strtok(response_string_cpy, "-");
+    char* code = strtok(response_string_cpy, delimiter);
 
     if(code == NULL){           
         printf("Server response code error\n");
