@@ -24,8 +24,8 @@ int file_transfer(ftp_url args){
         return -1;
     }
     
-    printf("Welcome response code: %d\n", welcome_response.code);
-    printf("Welcome response description: %s\n", welcome_response.description);
+    // printf("Welcome response code: %d\n", welcome_response.code);
+    // printf("Welcome response description: %s\n", welcome_response.description);
     
 
     // authenticate the user
@@ -51,11 +51,19 @@ int file_transfer(ftp_url args){
 
     printf("\nSuccessful Passive Mode\n");
 
-    // TODO: retrieve the file (Download)
+    // retrieve the file (Download)
 
+    if(retr_file(socketfd, pasv_socketfd, args.path)){
+        printf("Retrieving File error\n");
+        close(socketfd);
+        close(pasv_socketfd);
+        return -1;    
+    }
+
+    printf("\nSuccessful Retrieved File\n");
 
     // close the TCP connections
-    if (close(socketfd)<0) {
+    if (close(socketfd)<0 || close(pasv_socketfd)<0) {
         perror("close(socket)");
         exit(-1);
     }
@@ -326,4 +334,104 @@ int enter_pasv_mode(int socketfd){
     printf("TCP connection established with server to transfer data in passive mode\n");
 
     return pasv_socketfd;
+}
+
+int retr_file(int socketfd, int pasv_socketfd, char* path){
+
+    char retr_command[PATH_LEN + 10]; 
+    ftp_server_response retr_response;
+    
+    // retr command to send to the server
+    sprintf(retr_command, "retr %s\n", path);
+
+    // Sending retrieve command
+    if(send_command(socketfd, retr_command))
+    {
+        return -1;
+    }
+
+    if(receive_server_response(socketfd, &retr_response)) 
+    {
+        return -1;
+    }
+
+
+    int num_tries = 0;
+    
+    // Tries to receive "File status okay; about to open data connection." response MAX_TRIES
+    while(retr_response.code != FILE_STATUS_OK && num_tries < MAX_TRIES){
+        printf("\nUnexpected response from server. Trying again in 1 sec...\n");
+        sleep(1);
+
+        if(send_command(socketfd, retr_command)) 
+        {
+            return -1;
+        }
+
+        if(receive_server_response(socketfd, &retr_response)) 
+        {
+            return -1;
+        }
+
+        num_tries++;
+    }
+
+    if(num_tries == MAX_TRIES)
+    {                                   
+        printf("\nMaximum tries exceded. Exiting...\n");
+        return -1;
+    }
+
+    char filename[FILENAME_LEN];
+    if(parse_filename(path, filename))
+    {
+        return -1;
+    }
+
+    /*
+        flag -> 0644
+        (owning) User: read & write
+        Group: read
+        Other: read
+
+        O_WRONLY ->  write-only
+        O_CREAT -> If pathname does not exist, create it as a regular file.
+        
+    */
+    // open file descriptor
+    int filefd = open(filename, O_WRONLY | O_CREAT, 0644);
+    if(filefd == -1){
+        perror("open file descriptor");
+        return -1;
+    }
+    
+    char buf[1]; 
+    int rd, wt;
+
+    do{
+        // read from the server socker
+        rd = read(pasv_socketfd, buf, 1);
+        if(rd == -1){
+            perror("read");
+            return -1;
+        }
+
+        // write on file
+        wt = write(filefd, buf, 1);
+        if(wt == -1){
+            perror("write");
+            return -1;
+        }
+    }while(rd != 0);
+
+    close(filefd);
+
+    ftp_server_response transfer_ok_response;
+
+    if(receive_server_response(socketfd, &transfer_ok_response) != 0 || transfer_ok_response.code != TRANSFER_COMPLETE) 
+    {
+        return -1;
+    }
+    
+    return 0;
 }

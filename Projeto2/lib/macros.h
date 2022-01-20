@@ -3,6 +3,7 @@
 
 #define FTP_PORT 21
 
+#define FILENAME_LEN 63
 #define USER_LEN 63
 #define PASS_LEN 63
 #define HOST_LEN 255
@@ -16,7 +17,8 @@
 #define USER_LOGIN_OK 230
 #define NEED_PASSWORD 331
 #define ENTER_PASV_MODE 227
-
+#define FILE_STATUS_OK 150
+#define TRANSFER_COMPLETE 226
 
 #define MAX_TRIES 3
 

@@ -121,3 +121,26 @@ int parse_server_response(const char* response_string, ftp_server_response* resp
 
     return 0;
 }
+
+int parse_filename(char* path, char* filename){
+    
+    char *path_component = malloc(PATH_LEN);
+    path_component = strtok(path, "/");
+
+    if(path_component == NULL){
+        printf("URL wrong format \n");
+        free(path_component);
+        return -1;
+    }
+
+    do
+    {
+        strcpy(filename, path_component);
+        path_component = strtok(NULL, "/");
+        
+    }while(path_component != NULL);
+
+    free(path_component);
+
+    return 0;
+}
