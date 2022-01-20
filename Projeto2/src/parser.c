@@ -116,7 +116,7 @@ int parse_server_response(const char* response_string, ftp_server_response* resp
     }
 
     // save the code as an integer and description in struct
-    response->code = atoi(&code);
+    response->code = atoi(code);
     strcpy(response->description, description);
 
     return 0;

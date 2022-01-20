@@ -16,16 +16,15 @@ int file_transfer(ftp_url args){
     ftp_server_response welcome_response;
 
     // receive welcome response
-    receive_server_response(socketfd, &welcome_response);
-
-    printf(welcome_response.description);
-
-    /*
+    
     if(receive_server_response(socketfd, &welcome_response) != 0 || welcome_response.code != 220) {
         close(socketfd);
         return -1;
     }
-    */
+    
+    printf("%d\n", welcome_response.code);
+    printf("%s\n", welcome_response.description);
+    
     
 
     // TODO: authenticate the user
