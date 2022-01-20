@@ -21,7 +21,23 @@ int main(int argc, char** argv)
         return -1;
     }
         
+    /*
+    printf("\n");
+    printf("user: ");
+    printf(args.user);
+    printf("\n");
+    printf("pass: ");
+    printf(args.pass);
+    printf("\n");
+    printf("host: ");
+    printf(args.host);
+    printf("\n");
+    printf("path: ");
+    printf(args.path);
+    printf("\n");
+    */
     
+    printf("\nSuccessful parse URL\n\n");
 
     // file transfer 
     if(file_transfer(args) != 0)

@@ -92,3 +92,32 @@ int parse_url_first_part(char* user_pass_host, ftp_url* args){
     }
     return 0;
 }
+
+int parse_server_response(const char* response_string, ftp_server_response* response, const char* delimiter){
+    
+    char response_string_cpy[SERVER_RESPONSE_LEN];
+
+    // copy response_string to use on strtok
+    strcpy(response_string_cpy, response_string);
+
+    // response code
+    char* code = strtok(response_string_cpy, "-");
+
+    if(code == NULL){           
+        printf("Server response code error\n");
+        return -1;
+    }
+
+    // response description
+    char* description = strtok(NULL, "");
+
+    if(description == NULL){           
+        description = "No descripiton";
+    }
+
+    // save the code as an integer and description in struct
+    response->code = atoi(&code);
+    strcpy(response->description, description);
+
+    return 0;
+}

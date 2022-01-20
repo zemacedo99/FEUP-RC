@@ -37,7 +37,7 @@ int connection_TCP(char* server_ip, int server_port) {
     //     exit(-1);
     // }
 
-    return 0;
+    return sockfd;
 }
 
 
