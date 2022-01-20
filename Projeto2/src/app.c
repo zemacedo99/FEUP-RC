@@ -21,7 +21,7 @@ int main(int argc, char** argv)
         return -1;
     }
         
-    /*
+    
 
     // file transfer 
     if(file_transfer(args) != 0)
@@ -29,9 +29,9 @@ int main(int argc, char** argv)
         printf("Error transfering the file\n");
         return -1;
     }
-    */
+    
 
-    printf("Successful file transfer\n");
+    printf("\nSuccessful file transfer\n");
 
     return 0;
 }

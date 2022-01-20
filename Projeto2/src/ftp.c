@@ -2,7 +2,7 @@
 
 int file_transfer(ftp_url args){
 
-    char* ip;
+    char ip[30];
     get_host_ip(args.host, ip);
 
     int socketfd;
