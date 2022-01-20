@@ -1,0 +1,32 @@
+show vlan brief
+
+#Creating an Ethernet VLAN
+
+configure terminal
+vlan 60
+end
+
+#Add port X to vlan 60  (tux3 and tux4)
+configure terminal
+
+interface fastethernet 0/X
+switchport mode access
+switchport access vlan 60
+end
+
+#Creating an Ethernet VLAN
+
+configure terminal
+vlan 61
+end
+
+#Add port X to vlan 61 (tux2, tux4 and router)
+configure terminal
+
+interface fastethernet 0/X
+switchport mode access
+switchport access vlan 61
+end
+
+show vlan brief
+
