@@ -17,17 +17,27 @@ int file_transfer(ftp_url args){
 
     // receive welcome response
     
-    if(receive_server_response(socketfd, &welcome_response) != 0 || welcome_response.code != 220) {
+    if(receive_server_response(socketfd, &welcome_response) != 0 || welcome_response.code != READY_FOR_NEW_USER) {
+        printf("Server Response error\n");
         close(socketfd);
         return -1;
     }
     
-    printf("%d\n", welcome_response.code);
-    printf("%s\n", welcome_response.description);
-    
+    printf("Welcome response code: %d\n", welcome_response.code);
+    printf("Welcome response description: %s\n", welcome_response.description);
     
 
-    // TODO: authenticate the user
+    // authenticate the user
+
+    if(authenticate_user(socketfd, args.user, args.pass)) 
+    {
+        printf("Authentication error\n");
+        close(socketfd);
+        return -1;
+    }
+    
+
+    printf("\nSuccessful authentication\n");
 
     // TODO: Entering Passive Mode
 
@@ -66,10 +76,12 @@ int receive_server_response(int sockfd, ftp_server_response* response){
     return 0;
 }
 
+// reads a string from the server
 int receive_server_response_string(int sockfd, char* response){
 
     char buf[1]; int i=0;
 
+    // reads a byte from the server
     int ret = read(sockfd, buf, 1);
 
     if(ret < 0){                        
@@ -93,6 +105,124 @@ int receive_server_response_string(int sockfd, char* response){
     }
 
     response[i] = '\0';
+
+    return 0;
+}
+
+int send_command(int sockfd, char* command){
+    
+    // sends a string to the server
+    int ret = write(sockfd, command, strlen(command));
+
+    if(ret < 0){
+        perror("write");
+        return -1;
+    }
+    
+    return 0;
+}
+
+int authenticate_user(int socketfd ,char* user, char* pass){
+
+    char user_command[USER_LEN + 10]; 
+    char pass_command[PASS_LEN + 10];
+    ftp_server_response user_input_response; 
+    ftp_server_response pass_input_response;
+
+    // user and password commands to send to the server
+    sprintf(user_command,"user %s\n", user);
+    sprintf(pass_command,"pass %s\n", pass);
+
+
+    // sends the user
+    if(send_command(socketfd, user_command))
+    {
+        return -1;
+    }
+
+    if(receive_server_response(socketfd, &user_input_response))
+    {
+        return -1;
+    }
+ 
+        
+    // Ends after the welcome messages
+    while(user_input_response.code == READY_FOR_NEW_USER)
+    {
+        if(receive_server_response(socketfd, &user_input_response)) 
+        {
+            return -1;
+        }
+
+    }
+
+    // User logged in, proceed
+    if(user_input_response.code == USER_LOGIN_OK) return 0;
+    
+    int num_tries = 0;
+
+    // Tries to receive "User name okay, need password" response MAX_TRIES
+    while(user_input_response.code != NEED_PASSWORD && num_tries < MAX_TRIES)
+    {        
+        printf("\nUnexpected response from server. Trying again in 1 sec...\n");
+        sleep(1);
+
+        // sends the user again
+        if(send_command(socketfd, user_command))
+        {
+            return -1;
+        }
+
+        if(receive_server_response(socketfd, &user_input_response))
+        {
+            return -1;
+        }
+        
+        num_tries++;
+    }
+
+                                           
+    // sends the password
+    if(send_command(socketfd, pass_command))
+    {
+        return -1;
+    }
+
+    if(receive_server_response(socketfd, &pass_input_response)) 
+    {
+        return -1;
+    }
+
+
+    num_tries = 0;
+    
+    // Tries to receive "User logged in, proceed." response MAX_TRIES
+    while(pass_input_response.code != USER_LOGIN_OK && num_tries < MAX_TRIES)
+    {   
+
+        printf("\nUnexpected response from server. Trying again in 1 sec...\n");
+        sleep(1);
+
+        // sends the pass again
+        if(send_command(socketfd, pass_command))
+        {
+            return -1;
+        }
+
+        if(receive_server_response(socketfd, &pass_input_response))
+        {
+            return -1;
+        }
+        
+        num_tries++;
+
+    }
+
+    if(num_tries == MAX_TRIES)
+    {                                   
+        printf("\nMaximum tries exceded. Exiting...\n");
+        return -1;
+    }
 
     return 0;
 }

@@ -1,6 +1,8 @@
 #ifndef MACROS_H
 #define MACROS_H
 
+#define FTP_PORT 21
+
 #define USER_LEN 63
 #define PASS_LEN 63
 #define HOST_LEN 255
@@ -10,7 +12,12 @@
 
 #define SERVER_RESPONSE_LEN 255
 
-#define FTP_PORT 21
+#define READY_FOR_NEW_USER 220 
+#define USER_LOGIN_OK 230
+#define NEED_PASSWORD 331
+
+#define MAX_TRIES 3
+
 
 
 typedef struct 
